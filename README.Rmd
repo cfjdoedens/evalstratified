@@ -1,0 +1,74 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include=FALSE}
+# README.Rmd is processed by the developer of the package 
+# to create a README.md or README.html for the user of the package.
+# The README should be processed as last step in the development process.
+# This means that we should load here the latest version of the package.
+# So that is what we will do below.
+# 
+# Also when we are developing the package and 
+# in parallel writing the README, we want to use for the
+# README the latest version of the package.
+# 
+# Load the latest version of the package that is under development.
+if (requireNamespace("devtools", quietly = TRUE) && 
+    file.exists("evalstratified.Rproj")) {
+  devtools::load_all(".")
+} else {
+  # Error! Break off knitting process.
+    stop("README evalstratified: no evalstratified.Rproj in current directory.")
+}
+
+# Set global knitr options for all subsequent chunks
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  
+  # Route messages, warnings and errors to the R console, i.e. the developer.
+  # Not to the resulting document, i.e. the reader.
+  message = FALSE, 
+  warning = FALSE, 
+  error = FALSE
+)
+```
+
+```
+
+# evalstratified
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of evalstratified is to make an estimate of the 
+error fraction of a set of monetary files.
+This based on a level of certainty, and on samples of each of these
+files.
+
+## Installation
+
+You can install the development version of evalstratified from
+[GitHub](https://github.com/) with:
+
+```{r install, eval = FALSE, echo=TRUE}
+  if (!requireNamespace("devtools", quietly = TRUE)) {
+    install.packages("devtools")
+  }
+  devtools::install_github("cfjdoedens/evalstratified")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(evalstratified)
+
+```
+
