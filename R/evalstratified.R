@@ -3,9 +3,9 @@
 #'
 #' @description
 #' Evalueer samennemend als onafhankelijke steekproeven 1 of meer steekproeven op
-#' uitgaand geld. Doe dit ook door ze te beschouwen als getrokken op dezelfde massa,
-#' dus als afhankelijk.
-#' Evalueer ook de steekproeven afzonderlijk.
+#' uitgaand geld. Ter vergelijking doen we ook de evaluatie:
+#' - voor elke steekproef los
+#' - voor alle steekproeven samen, warbij ze beschouwd worden als te zijn getrokken op 1 massa.
 #'
 #' @details
 #' We gaan hierbij uit van de som van de foutfracties, dus we kijken niet naar
