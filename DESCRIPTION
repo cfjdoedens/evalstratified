@@ -1,6 +1,6 @@
 Package: evalstratified
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Estimate overall defect rate over multiple sampled masses
 Version: 0.1.0
 Authors@R: c(
     person(
@@ -19,3 +19,8 @@ Suggests:
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Imports:
+    drawsneeded
+Remotes:
+    cfjdoedens/drawsneeded
+
