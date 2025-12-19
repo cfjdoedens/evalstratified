@@ -25,7 +25,7 @@
 #' het oppervlak onder de kanskromme begrenst zodat links van deze lijn
 #' het oppervlak gelijk is aan de zekerheid, bijvoorbeeld 0,95.
 #'
-#' De meest waarschijnlijke fout is: de modus van de kanskromme.
+#' De meest waarschijnlijke fout is de modus van de kanskromme.
 #'
 #' @details
 #' We gaan uit van de som van de foutfracties, de k-waarde, dus we kijken niet naar
