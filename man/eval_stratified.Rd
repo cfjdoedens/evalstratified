@@ -86,15 +86,13 @@ pm is het punt op de p-as waarbij de verticale lijn p = pm,
 het oppervlak onder de kanskromme begrenst zodat links van deze lijn
 het oppervlak gelijk is aan de zekerheid, bijvoorbeeld 0,95.
 
-De meest waarschijnlijke fout is het gewogen gemiddelde van de p-waarden
-van alle punten op de kanskromme.
-De weging is op basis van de bijbehorende kans (c) waarden.
+De meest waarschijnlijke fout is de modus van de kanskromme.
 }
 \details{
-We gaan hierbij uit van de som van de foutfracties, dus we kijken niet naar
+We gaan uit van de som van de foutfracties, de k-waarde, dus we kijken niet naar
 de foutfracties per post.
 
-Aggregatie is dus puur op statistische
+Aggregatie is puur op statistische
 gronden: namelijk risico's op fouten boven de meest waarschijnlijke fout
 en op onder de meest waarschijnlijke fout vlakken elkaar enigszins uit
 genomen over de meerdere steekproeven.
@@ -136,7 +134,7 @@ met een steekproef waarbij de risicoinschatting niet op H staat
 en er toch fouten worden gevonden. Dit probleem staat los
 van hoe de uitkomsten van meerdere steekproeven samen te nemen.
 
-Als de parameter vergelijk TRUE is doen we, ter vergelijking, ook de evaluatie:
+Als de parameter vergelijk TRUE is doen we, ter vergelijking, ook een evaluatie:
 \itemize{
 \item voor elke steekproef los
 \item voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn getrokken op 1 massa.

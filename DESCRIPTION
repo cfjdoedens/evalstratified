@@ -23,4 +23,5 @@ Imports:
     drawsneeded
 Remotes:
     cfjdoedens/drawsneeded
-
+URL: https://github.com/cfjdoedens/evalstratified
+BugReports: https://github.com/cfjdoedens/evalstratified/issues

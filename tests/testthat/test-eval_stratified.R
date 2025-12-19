@@ -484,4 +484,3 @@ test_that("LNV 2023 (Wim Slot)", {
   expect_equal(round(r[["max_fout_convolutie"]], 3), 0.112)
   expect_equal(round(r[["max_fout_convolutie_geld"]], 0), 34194014)
 })
-
