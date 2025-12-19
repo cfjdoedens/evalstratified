@@ -86,7 +86,7 @@ pm is het punt op de p-as waarbij de verticale lijn p = pm,
 het oppervlak onder de kanskromme begrenst zodat links van deze lijn
 het oppervlak gelijk is aan de zekerheid, bijvoorbeeld 0,95.
 
-De meest waarschijnlijke fout is de modus van de kanskromme.
+De meest waarschijnlijke fout is: de modus van de kanskromme.
 }
 \details{
 We gaan uit van de som van de foutfracties, de k-waarde, dus we kijken niet naar
@@ -141,22 +141,21 @@ Als de parameter vergelijk TRUE is doen we, ter vergelijking, ook een evaluatie:
 }
 }
 \examples{
-steekproeven <- tribble(~naam, ~w, ~n, ~k) # Creeer lege invoertibble.
-
+steekproeven <- tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car) # Creeer lege invoertibble.
 naam <- "Steekproef1" # De naam van de 1e steekproef.
 w <- 35060542 # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
 n <- 31 # Het aantal getrokken en geevalueerde posten.
 k <- 0 # De som van de foutfracties.
-steekproeven <- add_row(steekproeven, naam = naam, w = w, n = n, k = k)
+steekproeven <- tibble::add_row(steekproeven, naam = naam, w = w, n = n, k = k)
 
 naam <- "Steekproef2" # De naam van de 2e steekproef.
 w <- 3044699  # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
 n <- 8 # Het aantal getrokken en geevalueerde posten.
 k <- 0 # De som van de foutfracties.
-steekproeven <- add_row(steekproeven, naam = naam, w = w, n = n, k = k)
+steekproeven <- tibble::add_row(steekproeven, naam = naam, w = w, n = n, k = k)
 
 # Kortheidshalve hadden we steekproeven ook kunnen invoeren als:
-steekproeven <- tribble(
+steekproeven <- tibble::tribble(
 ~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car,
 "Steekproef1", 35060542, 31, 0, 'H', 'H', 'H',
 "Steekproef2", 3044699, 8, 0, 'H', 'H', 'H')

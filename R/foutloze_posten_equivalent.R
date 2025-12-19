@@ -13,7 +13,7 @@
 #'
 #' @examples
 #' fpe <- foutloze_posten_equivalent()
-#'
+#' @export
 foutloze_posten_equivalent <- function(ihr = 'H', ibr = 'H', car = 'H', materialiteit = 0.01) {
    # Controleer invoerparameters.
   stopifnot(ihr %in% c('H', 'M', 'L'))

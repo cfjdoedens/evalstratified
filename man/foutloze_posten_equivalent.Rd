@@ -28,5 +28,4 @@ Geef equivalent in getrokken foutloze posten voor verlaagde risicoschattingen.
 }
 \examples{
 fpe <- foutloze_posten_equivalent()
-
 }
