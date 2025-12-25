@@ -51,10 +51,6 @@
 #' De functie \code{haro_nog_nodige_zekerheid()} geeft daarom ook waarden onder
 #' de .55 terug.
 #'
-#' Maar door de parameter strict, op \code{TRUE} te zetten wordt altijd tenminste .55
-#' teruggegeven.
-#' De parameter \code{strict} staat bij verstek op \code{FALSE}.
-#'
 #' Een bijzonderheid is dat toepassing van de formules kan leiden tot
 #' een niet-positieve zekerheid. Dit laatste heeft geen betekenisvolle interpretatie,
 #' en geeft ook aan dat het model een benadering is.
@@ -77,8 +73,6 @@
 #' @param car Het door de auditor ingeschatte cijferanalyserisico.
 #'            Te weten \code{'H'}, \code{'M'}, of \code{'L'},
 #'            ofwel hoog, midden of laag.
-#' @param strict \code{TRUE} of \code{FALSE}. Als \code{TRUE} dan wordt altijd minimaal
-#'            .55 teruggegeven door de functie.
 #'
 #' @returns Een getal tussen 0 en 1 (inclusief).
 #' @export
@@ -88,8 +82,7 @@
 #'
 haro_nog_nodige_zekerheid <- function(ihr = 'H',
                                       ibr = 'H',
-                                      car = 'H',
-                                      strict = FALSE) {
+                                      car = 'H') {
   # Controleer invoerparameters.
   stopifnot(ihr %in% c('H', 'M', 'L'))
   stopifnot(ibr %in% c('H', 'M', 'L'))
@@ -116,9 +109,6 @@ haro_nog_nodige_zekerheid <- function(ihr = 'H',
   nog_nodige_zekerheid <- max(0, 1 - detectierisico)
   if (nog_nodige_zekerheid <= 0.07) {
     nog_nodige_zekerheid <- nog_nodige_zekerheid + 0.05
-  }
-  if (strict) {
-    nog_nodige_zekerheid <- max(0.55, nog_nodige_zekerheid)
   }
   return(nog_nodige_zekerheid)
 }

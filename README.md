@@ -9,7 +9,7 @@
 
 The goal of evalstratified is to make an estimate of the error fraction
 of a set of monetary files. This based on a level of certainty, and on
-samples of each of these files.
+error fractions found in sampled items of each of these files.
 
 ## Installation
 
@@ -26,12 +26,14 @@ You can install the development version of evalstratified from
 ## Example
 
 Steekproef1 is gebaseerd op een zekerheid van 95% omdat ihr, ibr en car
-alledrie op hoog (H) staan. De materialiteit is 2%. Het betreft 100
-miljoen euro. Voor steekproef1 trekken we 148 posten, waarbij 1 fout
-blijkt. Steekproef2 is gebaseerd op een zekerheid van 64% omdat ihr en
-ibr allebei op laag staan en alleen car op hoog. Het betreft ook 100
-miljoen euro en een materialiteit van 2%. Voor steekproef2 trekken we 50
-posten waarvan er 0 fout blijken.
+alledrie op hoog (H) staan.
+
+De materialiteit is 2%. Het betreft 100 miljoen euro. Voor steekproef1
+trekken we 148 posten, waarbij 1 fout blijkt. Steekproef2 is gebaseerd
+op een zekerheid van 64% omdat ihr en ibr allebei op laag staan en
+alleen car op hoog. Het betreft ook 100 miljoen euro en een
+materialiteit van 2%. Voor steekproef2 trekken we 50 posten waarvan er 0
+fout blijken.
 
 ``` r
 library(evalstratified)
