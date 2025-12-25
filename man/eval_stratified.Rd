@@ -2,7 +2,7 @@
 % Please edit documentation in R/eval_stratified.R
 \name{eval_stratified}
 \alias{eval_stratified}
-\title{Evalueer samennemend de resultaten van 1 of meer steekproeven op uitgaand geld}
+\title{Evalueer samen de resultaten van 1 of meer steekproeven op uitgaand geld}
 \usage{
 eval_stratified(
   steekproeven,
@@ -67,8 +67,16 @@ Het samennemen van de resultaten gebeurt door convolutie van
 de foutkanskrommes van de afzonderlijke steekproeven tot
 1 foutkanskromme.
 
-We berekenen de maximale en meest waarschijnlijke fout als fractie
-en in geld van de samengenomen geldbedragen.
+We berekenen de meest waarschijnlijke en de maximale fout als fractie
+en in geld.
+
+De meest waarschijnlijke fout is de modus van de kanskromme.
+De maximale fout is afhankelijk van de gevraagde zekerheid, en
+is de fout bij een cumulatieve kans gelijk aan deze zekerheid.
+}
+\details{
+We gaan uit van de som van de foutfracties, de k-waarde, dus we kijken niet naar
+de foutfracties per post.
 
 De maximale fout wordt bepaald aan de hand van de resulterende kanskromme, op basis
 van de gewenste zekerheid. Visueel is de maximale fout, pm, te bepalen in een
@@ -85,12 +93,6 @@ en de verticale lijnen p = 0, en p = 1.
 pm is het punt op de p-as waarbij de verticale lijn p = pm,
 het oppervlak onder de kanskromme begrenst zodat links van deze lijn
 het oppervlak gelijk is aan de zekerheid, bijvoorbeeld 0,95.
-
-De meest waarschijnlijke fout is: de modus van de kanskromme.
-}
-\details{
-We gaan uit van de som van de foutfracties, de k-waarde, dus we kijken niet naar
-de foutfracties per post.
 
 Aggregatie is puur op statistische
 gronden: namelijk risico's op fouten boven de meest waarschijnlijke fout

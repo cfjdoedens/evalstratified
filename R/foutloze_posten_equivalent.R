@@ -20,10 +20,6 @@ foutloze_posten_equivalent <- function(ihr = 'H', ibr = 'H', car = 'H', material
   stopifnot(ibr %in% c('H', 'M', 'L'))
   stopifnot(car %in% c('H', 'M', 'L'))
 
-  if (ihr == 'H' && ibr == 'H' && car == 'H') {
-    return(0)
-  }
-
   benodigde_zekerheid <- haro_nog_nodige_zekerheid(ihr, ibr, car)
   posten_alles_hoog <- drawsneeded(0, materialiteit, cert = 0.95)
   posten_niet_alles_hoog <- drawsneeded(0, materialiteit, cert = benodigde_zekerheid)
