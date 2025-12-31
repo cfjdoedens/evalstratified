@@ -42,7 +42,7 @@
 #' de eigenschappen van de afzonderlijke administraties waaruit is
 #' getrokken.
 #'
-#' Dit package kan ook steekproeven combineren over massa's waarvoor
+#' Deze module kan ook steekproeven combineren over massa's waarvoor
 #' een verschillende risicoinschatting geldt.
 #'
 #' Bijvoorbeeld:
@@ -56,8 +56,8 @@
 #' Het betreft ook 100 miljoen euro en een materialiteit van 2%.
 #' Voor steekproef2 trekken we 50 posten waarvan er 0 fout blijken.
 #'
-#' Bij verschil in risicoinschatting van de massa's waarover
-#' wordt gestoken worden de lagere risicoinschattingen vertaald naar
+#' Bij een risicoinschatting onder 95% van een of meer van de massa's waarover
+#' wordt gestoken worden deze lagere risicoinschattingen vertaald naar
 #' extra getrokken foutloze posten.
 #' In ons voorbeeld bepalen we voor steekproef2 het aantal foutloze
 #' posten nodig om een positieve uitspraak te doen bij 64% en bij 95%.
@@ -77,7 +77,8 @@
 #'
 #' Als de parameter vergelijk TRUE is doen we, ter vergelijking, ook een evaluatie:
 #' - voor elke steekproef los
-#' - voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn getrokken op 1 massa.
+#' - voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn getrokken op 1 massa,
+#'   en als 1 steekproef.
 #'
 #' @param steekproeven
 #' Een tibble.
@@ -90,8 +91,9 @@
 #' \code{n}, het aantal getrokken posten,
 #' \code{k}, de som van de foutfracties van de posten,
 #' \code{ihr}, inherent risico, te weten H, M of L,
-#' \code{ibr}, intern beheersingsrisico, te weten H, M of L en
-#' \code{car}, cijferanalyserisico, te weten H, M of L.
+#' \code{ibr}, intern beheersingsrisico, te weten H, M of L,
+#' \code{car}, cijferanalyserisico, te weten H, M of L, en
+#' \code{materialiteit}, als fractie van de totale massa
 #' @param zekerheid
 #' Het zekerheidsniveau waarop we de maximale foutfractie berekenen.
 #' @param MC
@@ -135,24 +137,50 @@
 #' @importFrom tibble is_tibble
 #' @importFrom tibble tribble
 #' @examples
-#' steekproeven <- tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car) # Creeer lege invoertibble.
+#' # Creeer lege invoertibbe.
+#' steekproeven <- tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit)
 #' naam <- "Steekproef1" # De naam van de 1e steekproef.
 #' w <- 35060542 # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
 #' n <- 31 # Het aantal getrokken en geevalueerde posten.
 #' k <- 0 # De som van de foutfracties.
-#' steekproeven <- tibble::add_row(steekproeven, naam = naam, w = w, n = n, k = k)
+#' ihr <- 'H'
+#' ibr <- 'H'
+#' car <- 'H'
+#' materialiteit <- 0.01
+#' steekproeven <-
+#'   tibble::add_row(steekproeven,
+#'                   naam = naam,
+#'                   w = w,
+#'                   n = n,
+#'                   k = k,
+#'                   ihr = ihr,
+#'                   ibr = ibr,
+#'                   car = car,
+#'                   materialiteit = materialiteit)
 #'
 #' naam <- "Steekproef2" # De naam van de 2e steekproef.
 #' w <- 3044699  # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
 #' n <- 8 # Het aantal getrokken en geevalueerde posten.
 #' k <- 0 # De som van de foutfracties.
-#' steekproeven <- tibble::add_row(steekproeven, naam = naam, w = w, n = n, k = k)
+#' ihr <- 'H'
+#' ibr <- 'H'
+#' car <- 'H'
+#' materialiteit <- 0.1
+#'   tibble::add_row(steekproeven,
+#'                   naam = naam,
+#'                   w = w,
+#'                   n = n,
+#'                   k = k,
+#'                   ihr = ihr,
+#'                   ibr = ibr,
+#'                   car = car,
+#'                   materialiteit = materialiteit)
 #'
 #' # Kortheidshalve hadden we steekproeven ook kunnen invoeren als:
 #' steekproeven <- tibble::tribble(
-#' ~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car,
-#' "Steekproef1", 35060542, 31, 0, 'H', 'H', 'H',
-#' "Steekproef2", 3044699, 8, 0, 'H', 'H', 'H')
+#' ~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit,
+#' "Steekproef1", 35060542, 31, 0, 'H', 'H', 'H', 0.01,
+#' "Steekproef2", 3044699, 8, 0, 'H', 'H', 'H', 0.01)
 #'
 #' # Evalueer steekproef1 en steekproef2 samen.
 #' eval_stratified(steekproeven = steekproeven)
@@ -172,6 +200,7 @@ eval_stratified <-
       stopifnot("ihr" %in% colnames(steekproeven))
       stopifnot("ibr" %in% colnames(steekproeven))
       stopifnot("car" %in% colnames(steekproeven))
+      stopifnot("materialiteit" %in% colnames(steekproeven))
 
       naam <- steekproeven %>% pull(naam)
       w <- steekproeven %>% pull(w)
@@ -180,6 +209,7 @@ eval_stratified <-
       ihr <- steekproeven %>% pull(ihr)
       ibr <- steekproeven %>% pull(ibr)
       car <- steekproeven %>% pull(car)
+      materialiteit <- steekproeven %>% pull(materialiteit)
       len_naam <- length(naam)
       stopifnot(len_naam > 0)
       len_w <- length(w)
@@ -188,12 +218,15 @@ eval_stratified <-
       len_ihr <- length(ihr)
       len_ibr <- length(ibr)
       len_car <- length(car)
+      len_materialiteit <- length(materialiteit)
       stopifnot(len_naam == len_w)
       stopifnot(len_naam == len_n)
       stopifnot(len_naam == len_k)
       stopifnot(len_naam == len_ihr)
       stopifnot(len_naam == len_ibr)
       stopifnot(len_naam == len_car)
+      stopifnot(len_naam == len_materialiteit)
+      stopifnot(ihr %in% c('H', 'M', 'L'))
       stopifnot(ihr %in% c('H', 'M', 'L'))
       stopifnot(ibr %in% c('H', 'M', 'L'))
       stopifnot(car %in% c('H', 'M', 'L'))
@@ -201,17 +234,20 @@ eval_stratified <-
       stopifnot(is.numeric(w))
       stopifnot(is.numeric(n))
       stopifnot(is.numeric(k))
-      stopifnot(w > 0)
-      stopifnot(n > 0)
-      stopifnot(k >= 0)
-      stopifnot(n >= k)
+      stopifnot(is.numeric(materialiteit))
+      stopifnot(0 < w)
+      stopifnot(0 < n)
+      stopifnot(0 <= k)
+      stopifnot(k <= n)
+      stopifnot(0 < materialiteit)
+      stopifnot(materialiteit < 1)
       stopifnot(is.finite(w))
       stopifnot(is.finite(n))
       stopifnot(is.finite(k))
 
       stopifnot(length(zekerheid) == 1)
       stopifnot(is.numeric(zekerheid))
-      stopifnot(zekerheid >= 0)
+      stopifnot(0 <= zekerheid)
       stopifnot(zekerheid <= 1)
 
       stopifnot(length(MC) == 1)
@@ -240,6 +276,7 @@ eval_stratified <-
         ~ ihr,
         ~ ibr,
         ~ car,
+        ~ materialiteit,
         ~ extra_foutloze_posten,
         ~ toch_fouten,
         ~ mw_fout,
@@ -260,6 +297,7 @@ eval_stratified <-
           ihr = steekproeven$ihr[[i]],
           ibr = steekproeven$ibr[[i]],
           car = steekproeven$car[[i]],
+          materialiteit = steekproeven$materialiteit[[i]],
           extra_foutloze_posten = NA,
           toch_fouten = NA,
           mw_fout = NA,
@@ -270,7 +308,10 @@ eval_stratified <-
     # Vul extra_foutloze_posten.
     for (i in 1:n_steekproeven) {
       t_uit$extra_foutloze_posten[[i]] <-
-        foutloze_posten_equivalent(t_uit$ihr[[i]], t_uit$ibr[[i]], t_uit$car[[i]])
+        foutloze_posten_equivalent(t_uit$ihr[[i]],
+                                   t_uit$ibr[[i]],
+                                   t_uit$car[[i]],
+                                   t_uit$materialiteit[[i]])
     }
 
     # Vul toch_fouten.
@@ -297,7 +338,7 @@ eval_stratified <-
         k <- t_uit$k[[i]]
         krommen[, i] <-
           # Hier maken we kanskromme i.
-          # Let op: de 'kromme' wordt gerepesenteerd als een 1-dimensionale vector
+          # Let op: de 'kromme' wordt gerepresenteerd als een 1-dimensionale vector
           # van waarden.
           # De dichtheid van de waarden geeft de hoogte van de kromme aan.
           # Dus bijvoorbeeld als de waarden rondom 0.45 veel voorkomen, dan is daar de
@@ -348,26 +389,26 @@ eval_stratified <-
         # Evaluaties van de afzonderlijke steekproeven.
         for (i in 1:n_steekproeven) {
           w <- t_uit$w[[i]]
-          n <- t_uit$n[[i]]
+          n <- t_uit$n[[i]] + t_uit$extra_foutloze_posten[[i]]
           k <- t_uit$k[[i]]
 
           # De gemiddelde fout.
-          # Deze heeft zowel frequentistisch als Bayesiaans betekenis.
+          # Deze wordt frequentistisch en Bayesiaans op dezelfde wijze berekend.
           t_uit$mw_fout[[i]] = k / n
 
           # De maximale fout gegeven deze zekerheid.
           t_uit$max_fout[[i]] = qbeta(zekerheid, k + 1, n - k + 1)
         }
 
-        # Voeg gemiddelde fouten en maximale fouten bij elkaar.
-        mw_fout_los <- sum((t_uit$mw_fout * w) / totaalgeld)
-        max_fout_los <- sum((t_uit$max_fout * w) / totaalgeld)
+        # Voeg gemiddelde fouten, respectievelijk maximale fouten, bij elkaar.
+        mw_fout_los <- sum(t_uit$mw_fout * w) / totaalgeld
+        max_fout_los <- sum(t_uit$max_fout * w) / totaalgeld
       }
 
       # ALS1
       # Evalueer alle steekproeven samen, alsof het
-      # 1 steekproef is.
-      n <- sum(t_uit$n)
+      # 1 steekproef is op 1 massa.
+      n <- sum(t_uit$n) + sum(t_uit$extra_foutloze_posten)
       k <- sum(t_uit$k)
       mw_fout_als1 = k / n # De gemiddelde fout.
       max_fout_als1 = qbeta(zekerheid, k + 1, n - k + 1)

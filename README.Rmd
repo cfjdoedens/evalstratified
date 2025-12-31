@@ -46,7 +46,8 @@ knitr::opts_chunk$set(
 
 The goal of evalstratified is to make an estimate of the 
 error fraction of a set of monetary files.
-This based on a level of certainty, and on error fractions
+This based on a global level of certainty, a level of certainty per file,
+and on error fractions
 found in sampled items of each of these
 files.
 
@@ -69,6 +70,7 @@ ihr, ibr en car alledrie op hoog (H) staan.
 
 De materialiteit is 2%.
 Het betreft 100 miljoen euro.
+
 Voor steekproef1 trekken we 148 posten, waarbij 1 fout blijkt.
 Steekproef2 is gebaseerd op een zekerheid van 64% omdat
 ihr en ibr allebei op laag staan en alleen car op hoog.
@@ -86,6 +88,7 @@ library(evalstratified)
       ~ ihr,
       ~ ibr,
       ~ car,
+      ~ materialiteit,
       "populatie1",
       100000000,
       148,
@@ -93,13 +96,15 @@ library(evalstratified)
       'H',
       'H',
       'H',
+      0.02,
       "populatie2",
       100000000,
       50,
       0,
       'L',
       'L',
-      'H'
+      'H',
+      0.02
     )
     r <- eval_stratified(steekproeven = example, zekerheid = 0.95)
     r

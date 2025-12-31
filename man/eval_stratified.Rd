@@ -23,8 +23,9 @@ Dit zijn repectievelijk
 \code{n}, het aantal getrokken posten,
 \code{k}, de som van de foutfracties van de posten,
 \code{ihr}, inherent risico, te weten H, M of L,
-\code{ibr}, intern beheersingsrisico, te weten H, M of L en
-\code{car}, cijferanalyserisico, te weten H, M of L.}
+\code{ibr}, intern beheersingsrisico, te weten H, M of L,
+\code{car}, cijferanalyserisico, te weten H, M of L, en
+\code{materialiteit}, als fractie van de totale massa}
 
 \item{zekerheid}{Het zekerheidsniveau waarop we de maximale foutfractie berekenen.}
 
@@ -103,7 +104,7 @@ wordt geen enkele aanname gedaan over gelijkenis tussen
 de eigenschappen van de afzonderlijke administraties waaruit is
 getrokken.
 
-Dit package kan ook steekproeven combineren over massa's waarvoor
+Deze module kan ook steekproeven combineren over massa's waarvoor
 een verschillende risicoinschatting geldt.
 
 Bijvoorbeeld:
@@ -117,8 +118,8 @@ ihr en ibr allebei op laag staan en alleen car op hoog.
 Het betreft ook 100 miljoen euro en een materialiteit van 2\%.
 Voor steekproef2 trekken we 50 posten waarvan er 0 fout blijken.
 
-Bij verschil in risicoinschatting van de massa's waarover
-wordt gestoken worden de lagere risicoinschattingen vertaald naar
+Bij een risicoinschatting onder 95\% van een of meer van de massa's waarover
+wordt gestoken worden deze lagere risicoinschattingen vertaald naar
 extra getrokken foutloze posten.
 In ons voorbeeld bepalen we voor steekproef2 het aantal foutloze
 posten nodig om een positieve uitspraak te doen bij 64\% en bij 95\%.
@@ -139,28 +140,55 @@ van hoe de uitkomsten van meerdere steekproeven samen te nemen.
 Als de parameter vergelijk TRUE is doen we, ter vergelijking, ook een evaluatie:
 \itemize{
 \item voor elke steekproef los
-\item voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn getrokken op 1 massa.
+\item voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn getrokken op 1 massa,
+en als 1 steekproef.
 }
 }
 \examples{
-steekproeven <- tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car) # Creeer lege invoertibble.
+# Creeer lege invoertibbe.
+steekproeven <- tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit)
 naam <- "Steekproef1" # De naam van de 1e steekproef.
 w <- 35060542 # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
 n <- 31 # Het aantal getrokken en geevalueerde posten.
 k <- 0 # De som van de foutfracties.
-steekproeven <- tibble::add_row(steekproeven, naam = naam, w = w, n = n, k = k)
+ihr <- 'H'
+ibr <- 'H'
+car <- 'H'
+materialiteit <- 0.01
+steekproeven <-
+  tibble::add_row(steekproeven,
+                  naam = naam,
+                  w = w,
+                  n = n,
+                  k = k,
+                  ihr = ihr,
+                  ibr = ibr,
+                  car = car,
+                  materialiteit = materialiteit)
 
 naam <- "Steekproef2" # De naam van de 2e steekproef.
 w <- 3044699  # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
 n <- 8 # Het aantal getrokken en geevalueerde posten.
 k <- 0 # De som van de foutfracties.
-steekproeven <- tibble::add_row(steekproeven, naam = naam, w = w, n = n, k = k)
+ihr <- 'H'
+ibr <- 'H'
+car <- 'H'
+materialiteit <- 0.1
+  tibble::add_row(steekproeven,
+                  naam = naam,
+                  w = w,
+                  n = n,
+                  k = k,
+                  ihr = ihr,
+                  ibr = ibr,
+                  car = car,
+                  materialiteit = materialiteit)
 
 # Kortheidshalve hadden we steekproeven ook kunnen invoeren als:
 steekproeven <- tibble::tribble(
-~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car,
-"Steekproef1", 35060542, 31, 0, 'H', 'H', 'H',
-"Steekproef2", 3044699, 8, 0, 'H', 'H', 'H')
+~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit,
+"Steekproef1", 35060542, 31, 0, 'H', 'H', 'H', 0.01,
+"Steekproef2", 3044699, 8, 0, 'H', 'H', 'H', 0.01)
 
 # Evalueer steekproef1 en steekproef2 samen.
 eval_stratified(steekproeven = steekproeven)
