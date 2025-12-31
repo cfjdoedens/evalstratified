@@ -3,7 +3,6 @@
 export(eval_stratified)
 export(foutloze_posten_equivalent)
 export(haro_nog_nodige_zekerheid)
-importFrom(dplyr,"%>%")
 importFrom(dplyr,pull)
 importFrom(drawsneeded,drawsneeded)
 importFrom(stats,density)

@@ -40,19 +40,25 @@ en de resultaten daarvan toegevoegd aan de uitkomst van de functie.}
 \value{
 Een lijst, bestaande uit
 \itemize{
-\item \code{mw_fout_convolutie}, de meest waarschijnlijke fout als fractie van de totale massa in geld
-\item \code{max_fout_convolutie}, de maximale fout als fractie van de totale massa in geld
+\item \code{mw_fout_convolutie}, de meest waarschijnlijke fout als fractie van
+de totale massa in geld
+\item \code{max_fout_convolutie}, de maximale fout als fractie van de totale
+massa in geld
 \item en zo ook voor modus, mediaan en gemiddelde
 \item als vergelijk == TRUE een lijst
-\code{vergelijk_met}, met daarin vergelijkende cijfers voor "los" en voor "als1".
-Hierbij staat "los" voor de samengenomen, gewogen, cijfers der afzonderlijke steekproeven,
+\code{vergelijk_met}, met daarin vergelijkende cijfers voor "los" en voor
+"als1".
+Hierbij staat "los" voor de samengenomen, gewogen, cijfers der
+afzonderlijke steekproeven,
 en "als1" voor als alle steken en de resultaten daarvan worden beschouwd
 als voor 1 steekproef getrokken uit 1 massa.
 \item \code{steekproeven}, de invoer tibble, verrijkt per steekproef: met
 \itemize{
-\item \code{extra_foutloze_posten}, het aantal foutloze posten dat equivalent is aan ihr+ibr+car volgens
+\item \code{extra_foutloze_posten},
+het aantal foutloze posten dat equivalent is aan ihr+ibr+car volgens
 het ARM model en de interpretatie daarvan door de ADR,
-\item \code{toch_fouten}, TRUE of FALSE, geeft aan of tenminste 1 van ihr, ibr of car niet op hoog staat
+\item \code{toch_fouten}, TRUE of FALSE,
+geeft aan of tenminste 1 van ihr, ibr of car niet op hoog staat
 en er wel fouten zijn gevonden
 \item \code{mw_fout}, als vergelijk TRUE,
 de meest waarschijnlijke fout voor die steekproef als
@@ -76,10 +82,12 @@ De maximale fout is afhankelijk van de gevraagde zekerheid, en
 is de fout bij een cumulatieve kans gelijk aan deze zekerheid.
 }
 \details{
-We gaan uit van de som van de foutfracties, de k-waarde, dus we kijken niet naar
+We gaan uit van de som van de foutfracties, de k-waarde, dus we kijken niet
+naar
 de foutfracties per post.
 
-De maximale fout wordt bepaald aan de hand van de resulterende kanskromme, op basis
+De maximale fout wordt bepaald aan de hand van de resulterende kanskromme,
+op basis
 van de gewenste zekerheid. Visueel is de maximale fout, pm, te bepalen in een
 tweedimensionaal, haaks, assenstelsel.
 De horizontale as, de p-as, loopt van 0 tot 1.
@@ -137,58 +145,66 @@ met een steekproef waarbij de risicoinschatting niet op H staat
 en er toch fouten worden gevonden. Dit probleem staat los
 van hoe de uitkomsten van meerdere steekproeven samen te nemen.
 
-Als de parameter vergelijk TRUE is doen we, ter vergelijking, ook een evaluatie:
+Als de parameter vergelijk TRUE is doen we, ter vergelijking, ook een
+evaluatie:
 \itemize{
 \item voor elke steekproef los
-\item voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn getrokken op 1 massa,
+\item voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn
+getrokken op 1 massa,
 en als 1 steekproef.
 }
 }
 \examples{
 # Creeer lege invoertibbe.
-steekproeven <- tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit)
+steekproeven <-
+  tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit)
 naam <- "Steekproef1" # De naam van de 1e steekproef.
-w <- 35060542 # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
+w <- 35060542 # Het gewicht van de steekproef, als geldomvang van de massa
+# waarover wordt gestoken.
 n <- 31 # Het aantal getrokken en geevalueerde posten.
 k <- 0 # De som van de foutfracties.
-ihr <- 'H'
-ibr <- 'H'
-car <- 'H'
+ihr <- "H"
+ibr <- "H"
+car <- "H"
 materialiteit <- 0.01
 steekproeven <-
   tibble::add_row(steekproeven,
-                  naam = naam,
-                  w = w,
-                  n = n,
-                  k = k,
-                  ihr = ihr,
-                  ibr = ibr,
-                  car = car,
-                  materialiteit = materialiteit)
+    naam = naam,
+    w = w,
+    n = n,
+    k = k,
+    ihr = ihr,
+    ibr = ibr,
+    car = car,
+    materialiteit = materialiteit
+  )
 
 naam <- "Steekproef2" # De naam van de 2e steekproef.
-w <- 3044699  # Het gewicht van de steekproef, als geldomvang van de massa waarover wordt gestoken.
+w <- 3044699 # Het gewicht van de steekproef, als geldomvang van de
+# massa waarover wordt gestoken.
 n <- 8 # Het aantal getrokken en geevalueerde posten.
 k <- 0 # De som van de foutfracties.
-ihr <- 'H'
-ibr <- 'H'
-car <- 'H'
+ihr <- "H"
+ibr <- "H"
+car <- "H"
 materialiteit <- 0.1
-  tibble::add_row(steekproeven,
-                  naam = naam,
-                  w = w,
-                  n = n,
-                  k = k,
-                  ihr = ihr,
-                  ibr = ibr,
-                  car = car,
-                  materialiteit = materialiteit)
+tibble::add_row(steekproeven,
+  naam = naam,
+  w = w,
+  n = n,
+  k = k,
+  ihr = ihr,
+  ibr = ibr,
+  car = car,
+  materialiteit = materialiteit
+)
 
 # Kortheidshalve hadden we steekproeven ook kunnen invoeren als:
 steekproeven <- tibble::tribble(
-~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit,
-"Steekproef1", 35060542, 31, 0, 'H', 'H', 'H', 0.01,
-"Steekproef2", 3044699, 8, 0, 'H', 'H', 'H', 0.01)
+  ~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit,
+  "Steekproef1", 35060542, 31, 0, "H", "H", "H", 0.01,
+  "Steekproef2", 3044699, 8, 0, "H", "H", "H", 0.01
+)
 
 # Evalueer steekproef1 en steekproef2 samen.
 eval_stratified(steekproeven = steekproeven)

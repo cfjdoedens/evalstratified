@@ -5,23 +5,23 @@ output: github_document
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r setup, include=FALSE}
-# README.Rmd is processed by the developer of the package 
+# README.Rmd is processed by the developer of the package
 # to create a README.md or README.html for the user of the package.
 # The README should be processed as last step in the development process.
 # This means that we should load here the latest version of the package.
 # So that is what we will do below.
-# 
-# Also when we are developing the package and 
+#
+# Also when we are developing the package and
 # in parallel writing the README, we want to use for the
 # README the latest version of the package.
-# 
+#
 # Load the latest version of the package that is under development.
-if (requireNamespace("devtools", quietly = TRUE) && 
-    file.exists("evalstratified.Rproj")) {
+if (requireNamespace("devtools", quietly = TRUE) &&
+  file.exists("evalstratified.Rproj")) {
   devtools::load_all(".")
 } else {
   # Error! Break off knitting process.
-    stop("README evalstratified: no evalstratified.Rproj in current directory.")
+  stop("README evalstratified: no evalstratified.Rproj in current directory.")
 }
 
 # Set global knitr options for all subsequent chunks
@@ -30,11 +30,11 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%",
-  
+
   # Route messages, warnings and errors to the R console, i.e. the developer.
   # Not to the resulting document, i.e. the reader.
-  message = FALSE, 
-  warning = FALSE, 
+  message = FALSE,
+  warning = FALSE,
   error = FALSE
 )
 ```
@@ -58,57 +58,54 @@ You can install the development version of evalstratified from
 [GitHub](https://github.com/) with:
 
 ```{r install, eval = FALSE, echo=TRUE}
-  if (!requireNamespace("devtools", quietly = TRUE)) {
-    install.packages("devtools")
-  }
-  devtools::install_github("cfjdoedens/evalstratified")
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+devtools::install_github("cfjdoedens/evalstratified")
 ```
 
 ## Example
 
 Steekproef1 is gebaseerd op een zekerheid van 95% omdat
-ihr, ibr en car alledrie op hoog (H) staan.
+ihr, ibr en car alledrie op hoog (H) staan. We kunnen dit ook narekenen met `haro_nog_nodige_zekerheid(ihr = "H", ibr = "H", car = "H")`. Dit levert inderdaad `r haro_nog_nodige_zekerheid(ihr = "H", ibr = "H", car = "H")` op. De materialiteit is 2%.
+Het betreft 100 miljoen euro. 
+Om te bepalen hoeveel posten we moeten trekken voor
+steekproef1 gebruiken we `drawsneeded::drawsneeded(0, 0.02, cert = 0.95)`. Resultaat: `r drawsneeded::drawsneeded(0, 0.02, cert = 0.95)`.
+Na trekken en evalueren blijkt er 1 post fout te zijn.
 
-De materialiteit is 2%.
-Het betreft 100 miljoen euro.
-
-Voor steekproef1 trekken we 148 posten, waarbij 1 fout blijkt.
-Steekproef2 is gebaseerd op een zekerheid van 64% omdat
-ihr en ibr allebei op laag staan en alleen car op hoog.
-Het betreft ook 100 miljoen euro en een materialiteit van ook 2%.
-Voor steekproef2 trekken we 50 posten waarvan er 0 fout blijken. 
+Bij steekproef2 staan ihr en ibr allebei op laag en alleen car staat op hoog. We berekenen de benodigde zekerheid met `haro_nog_nodige_zekerheid(ihr = "L", ibr = "L", car = "H")`. Dit levert `r haro_nog_nodige_zekerheid(ihr = "L", ibr = "L", car = "H")` op. Het betreft ook 100 miljoen euro en een materialiteit van ook 2%.
+Voor steekproef2 bepalen we vervolgens het aantal te trekken posten met `drawsneeded::drawsneeded(0, 0.02, cert = 0.64)`. Resultaat: `r drawsneeded::drawsneeded(0, 0.02, cert = 0.64)`. Na trekken en evalueren blijkt geen enkele post hiervan fout te zijn. 
 
 ```{r example}
 library(evalstratified)
 
-  example <- tribble(
-      ~ naam,
-      ~ w,
-      ~ n,
-      ~ k,
-      ~ ihr,
-      ~ ibr,
-      ~ car,
-      ~ materialiteit,
-      "populatie1",
-      100000000,
-      148,
-      1,
-      'H',
-      'H',
-      'H',
-      0.02,
-      "populatie2",
-      100000000,
-      50,
-      0,
-      'L',
-      'L',
-      'H',
-      0.02
-    )
-    r <- eval_stratified(steekproeven = example, zekerheid = 0.95)
-    r
-
+example <- tribble(
+  ~naam,
+  ~w,
+  ~n,
+  ~k,
+  ~ihr,
+  ~ibr,
+  ~car,
+  ~materialiteit,
+  "populatie1",
+  100000000,
+  148,
+  1,
+  "H",
+  "H",
+  "H",
+  0.02,
+  "populatie2",
+  100000000,
+  50,
+  0,
+  "L",
+  "L",
+  "H",
+  0.02
+)
+r <- eval_stratified(steekproeven = example, zekerheid = 0.95)
+r
 ```
 

@@ -8,15 +8,15 @@ haro_nog_nodige_zekerheid(ihr = "H", ibr = "H", car = "H")
 }
 \arguments{
 \item{ihr}{Het door de auditor ingeschatte inherente risico.
-Te weten \code{'H'}, \code{'M'}, of \code{'L'},
+Te weten \code{"H"}, \code{"M"}, of \code{"L"},
 ofwel hoog, midden of laag.}
 
 \item{ibr}{Het door de auditor ingeschatte interne beheersingsrisico.
-Te weten \code{'H'}, \code{'M'}, of \code{'L'},
+Te weten \code{"H"}, \code{"M"}, of \code{"L"},
 ofwel hoog, midden of laag.}
 
 \item{car}{Het door de auditor ingeschatte cijferanalyserisico.
-Te weten \code{'H'}, \code{'M'}, of \code{'L'},
+Te weten \code{"H"}, \code{"M"}, of \code{"L"},
 ofwel hoog, midden of laag.}
 }
 \value{
@@ -36,14 +36,14 @@ het Audit Risk Model. Deze term wordt echter niet gebruikt in het HARo.
 Het model is gebaseerd op inherent risico, ihr, intern beheersings risico,
 ibr, cijferanalyse risico, car. De mogelijke waarden zijn: H, M en L, ofwel,
 hoog, midden en laag.
-In B7.3.4 wordt een getalswaarde (uit \code{[0, 1]}) gekoppeld aan deze H, M en L,
-die deels verschilt per type risico: ihr, ibr of car.
+In B7.3.4 wordt een getalswaarde (uit \code{[0, 1]}) gekoppeld aan
+deze H, M en L, die deels verschilt per type risico: ihr, ibr of car.
 Zie hiervoor de tabel op de tweede bladzijde van B7.3.4.
 Vanuit deze tabel wordt dan de tabel die begint op de eerste bladzijde
 van B7.3.4 berekend.
 De berekening hiervoor staat niet in B7.3.4, maar is wel bekend.
-Deze berekening wordt in de programmacode van \code{haro_nog_nodige_zekerheid()}
-toegepast.
+Deze berekening wordt in de programmacode van
+\code{haro_nog_nodige_zekerheid()} toegepast.
 
 In de tabel die begint op de eerste bladzijde van B7.3.4 komen
 niet alleen getalswaarden voor als resultaat van een combinatie van
@@ -53,7 +53,8 @@ lager dan .55 leiden.
 Ik citeer uit B7.3.4: \preformatted{
 "Als in de tabel een "-" is opgenomen betekent dat niet dat er geen
  gegevensgerichte werkzaamheden nodig zijn, maar alleen dat de benodigde
- zekerheid niet effectief met een (statistische) steekproef kan worden verkregen."}
+ zekerheid niet effectief met een (statistische) steekproef
+ kan worden verkregen."}
 Dat je die lagere zekerheden niet met een statistische steekproef kunt
 bereiken lijkt me onjuist.
 Bovendien eist bijvoorbeeld Standaard 330 van de NBA: \preformatted{
@@ -73,9 +74,10 @@ De functie \code{haro_nog_nodige_zekerheid()} geeft daarom ook waarden onder
 de .55 terug.
 
 Een bijzonderheid is dat toepassing van de formules kan leiden tot
-een niet-positieve zekerheid. Dit laatste heeft geen betekenisvolle interpretatie,
-en geeft ook aan dat het model een benadering is.
-Om deze niet-positieve waarden uit te sluiten, worden in \code{haro_nog_nodige_zekerheid()}
+een niet-positieve zekerheid. Dit laatste heeft geen betekenisvolle
+interpretatie, en geeft ook aan dat het model een benadering is.
+Om deze niet-positieve waarden uit te sluiten, worden in
+\code{haro_nog_nodige_zekerheid()}
 potentiele negatieve waarden van de functie omgezet naar 0.05.
 Dit komt alleen voor als ihr, ibr en car alledrie op laag staan (LLL)
 Omdat daardoor de drie laagste waarden dicht op elkaar komen,
@@ -86,6 +88,6 @@ Ik heb een voorstel gedaan binnen de ADR werkgroep steekproeven om
 de HARo-tabel dienovereenkomstig aan te passen.
 }
 \examples{
-  nnz <- haro_nog_nodige_zekerheid()
+nnz <- haro_nog_nodige_zekerheid()
 
 }

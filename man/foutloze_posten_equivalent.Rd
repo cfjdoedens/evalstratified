@@ -2,7 +2,8 @@
 % Please edit documentation in R/foutloze_posten_equivalent.R
 \name{foutloze_posten_equivalent}
 \alias{foutloze_posten_equivalent}
-\title{Geef equivalent in getrokken foutloze posten voor verlaagde risicoschattingen.}
+\title{Geef equivalent in getrokken foutloze posten voor
+verlaagde risicoschattingen.}
 \usage{
 foutloze_posten_equivalent(
   ihr = "H",
@@ -33,5 +34,5 @@ Bereken het aantal foutloze posten dat daar mee overeenkomt,
 rekeninghoudend met de materialiteit.
 }
 \examples{
-  fpe <- foutloze_posten_equivalent()
+fpe <- foutloze_posten_equivalent()
 }

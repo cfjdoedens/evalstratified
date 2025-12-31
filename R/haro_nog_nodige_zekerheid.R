@@ -15,14 +15,14 @@
 #' Het model is gebaseerd op inherent risico, ihr, intern beheersings risico,
 #' ibr, cijferanalyse risico, car. De mogelijke waarden zijn: H, M en L, ofwel,
 #' hoog, midden en laag.
-#' In B7.3.4 wordt een getalswaarde (uit \code{[0, 1]}) gekoppeld aan deze H, M en L,
-#' die deels verschilt per type risico: ihr, ibr of car.
+#' In B7.3.4 wordt een getalswaarde (uit \code{[0, 1]}) gekoppeld aan
+#' deze H, M en L, die deels verschilt per type risico: ihr, ibr of car.
 #' Zie hiervoor de tabel op de tweede bladzijde van B7.3.4.
 #' Vanuit deze tabel wordt dan de tabel die begint op de eerste bladzijde
 #' van B7.3.4 berekend.
 #' De berekening hiervoor staat niet in B7.3.4, maar is wel bekend.
-#' Deze berekening wordt in de programmacode van \code{haro_nog_nodige_zekerheid()}
-#' toegepast.
+#' Deze berekening wordt in de programmacode van
+#' \code{haro_nog_nodige_zekerheid()} toegepast.
 #'
 #' In de tabel die begint op de eerste bladzijde van B7.3.4 komen
 #' niet alleen getalswaarden voor als resultaat van een combinatie van
@@ -32,7 +32,8 @@
 #' Ik citeer uit B7.3.4: \preformatted{
 #' "Als in de tabel een "-" is opgenomen betekent dat niet dat er geen
 #'  gegevensgerichte werkzaamheden nodig zijn, maar alleen dat de benodigde
-#'  zekerheid niet effectief met een (statistische) steekproef kan worden verkregen."}
+#'  zekerheid niet effectief met een (statistische) steekproef
+#'  kan worden verkregen."}
 #'  Dat je die lagere zekerheden niet met een statistische steekproef kunt
 #'  bereiken lijkt me onjuist.
 #'  Bovendien eist bijvoorbeeld Standaard 330 van de NBA: \preformatted{
@@ -52,9 +53,10 @@
 #' de .55 terug.
 #'
 #' Een bijzonderheid is dat toepassing van de formules kan leiden tot
-#' een niet-positieve zekerheid. Dit laatste heeft geen betekenisvolle interpretatie,
-#' en geeft ook aan dat het model een benadering is.
-#' Om deze niet-positieve waarden uit te sluiten, worden in \code{haro_nog_nodige_zekerheid()}
+#' een niet-positieve zekerheid. Dit laatste heeft geen betekenisvolle
+#' interpretatie, en geeft ook aan dat het model een benadering is.
+#' Om deze niet-positieve waarden uit te sluiten, worden in
+#' \code{haro_nog_nodige_zekerheid()}
 #' potentiele negatieve waarden van de functie omgezet naar 0.05.
 #' Dit komt alleen voor als ihr, ibr en car alledrie op laag staan (LLL)
 #' Omdat daardoor de drie laagste waarden dicht op elkaar komen,
@@ -65,50 +67,54 @@
 #' de HARo-tabel dienovereenkomstig aan te passen.
 #'
 #' @param ihr Het door de auditor ingeschatte inherente risico.
-#'            Te weten \code{'H'}, \code{'M'}, of \code{'L'},
+#'            Te weten \code{"H"}, \code{"M"}, of \code{"L"},
 #'            ofwel hoog, midden of laag.
 #' @param ibr Het door de auditor ingeschatte interne beheersingsrisico.
-#'            Te weten \code{'H'}, \code{'M'}, of \code{'L'},
+#'            Te weten \code{"H"}, \code{"M"}, of \code{"L"},
 #'            ofwel hoog, midden of laag.
 #' @param car Het door de auditor ingeschatte cijferanalyserisico.
-#'            Te weten \code{'H'}, \code{'M'}, of \code{'L'},
+#'            Te weten \code{"H"}, \code{"M"}, of \code{"L"},
 #'            ofwel hoog, midden of laag.
 #'
 #' @returns Een getal tussen 0 en 1 (inclusief).
 #' @export
 #'
 #' @examples
-#'   nnz <- haro_nog_nodige_zekerheid()
+#' nnz <- haro_nog_nodige_zekerheid()
 #'
-haro_nog_nodige_zekerheid <- function(ihr = 'H',
-                                      ibr = 'H',
-                                      car = 'H') {
+haro_nog_nodige_zekerheid <- function(ihr = "H",
+                                      ibr = "H",
+                                      car = "H") {
   # Controleer invoerparameters.
-  stopifnot(ihr %in% c('H', 'M', 'L'))
-  stopifnot(ibr %in% c('H', 'M', 'L'))
-  stopifnot(car %in% c('H', 'M', 'L'))
+  stopifnot(ihr %in% c("H", "M", "L"))
+  stopifnot(ibr %in% c("H", "M", "L"))
+  stopifnot(car %in% c("H", "M", "L"))
 
   # Zie HAR0 7.3.4.
   ihr_als_getal <- switch(ihr,
-                          'H' = 1,
-                          'M' = 0.63,
-                          'L' = 0.40)
+    "H" = 1,
+    "M" = 0.63,
+    "L" = 0.40
+  )
 
   ibr_als_getal <- switch(ibr,
-                          'H' = 1,
-                          'M' = 0.52,
-                          'L' = 0.34)
+    "H" = 1,
+    "M" = 0.52,
+    "L" = 0.34
+  )
 
   car_als_getal <- switch(car,
-                          'H' = 1,
-                          'M' = 0.50,
-                          'L' = 0.25)
+    "H" = 1,
+    "M" = 0.50,
+    "L" = 0.25
+  )
 
   auditrisico <- 0.05
-  detectierisico <- auditrisico / (ihr_als_getal * ibr_als_getal * car_als_getal)
+  detectierisico <-
+    auditrisico / (ihr_als_getal * ibr_als_getal * car_als_getal)
   nog_nodige_zekerheid <- max(0, 1 - detectierisico)
   if (nog_nodige_zekerheid <= 0.07) {
     nog_nodige_zekerheid <- nog_nodige_zekerheid + 0.05
   }
-  return(nog_nodige_zekerheid)
+  nog_nodige_zekerheid
 }

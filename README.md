@@ -19,56 +19,62 @@ You can install the development version of evalstratified from
 [GitHub](https://github.com/) with:
 
 ``` r
-  if (!requireNamespace("devtools", quietly = TRUE)) {
-    install.packages("devtools")
-  }
-  devtools::install_github("cfjdoedens/evalstratified")
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+devtools::install_github("cfjdoedens/evalstratified")
 ```
 
 ## Example
 
 Steekproef1 is gebaseerd op een zekerheid van 95% omdat ihr, ibr en car
-alledrie op hoog (H) staan.
+alledrie op hoog (H) staan. We kunnen dit ook narekenen met
+`haro_nog_nodige_zekerheid(ihr = "H", ibr = "H", car = "H")`. Dit levert
+inderdaad 0.95 op. De materialiteit is 2%. Het betreft 100 miljoen euro.
+Om te bepalen hoeveel posten we moeten trekken voor steekproef1
+gebruiken we `drawsneeded::drawsneeded(0, 0.02, cert = 0.95)`.
+Resultaat: 148. Na trekken en evalueren blijkt er 1 post fout te zijn.
 
-De materialiteit is 2%. Het betreft 100 miljoen euro.
-
-Voor steekproef1 trekken we 148 posten, waarbij 1 fout blijkt.
-Steekproef2 is gebaseerd op een zekerheid van 64% omdat ihr en ibr
-allebei op laag staan en alleen car op hoog. Het betreft ook 100 miljoen
-euro en een materialiteit van ook 2%. Voor steekproef2 trekken we 50
-posten waarvan er 0 fout blijken.
+Bij steekproef2 staan ihr en ibr allebei op laag en alleen car staat op
+hoog. We berekenen de benodigde zekerheid met
+`haro_nog_nodige_zekerheid(ihr = "L", ibr = "L", car = "H")`. Dit levert
+0.6323529 op. Het betreft ook 100 miljoen euro en een materialiteit van
+ook 2%. Voor steekproef2 bepalen we vervolgens het aantal te trekken
+posten met `drawsneeded::drawsneeded(0, 0.02, cert = 0.64)`. Resultaat:
+50. Na trekken en evalueren blijkt geen enkele post hiervan fout te
+zijn.
 
 ``` r
 library(evalstratified)
 
-  example <- tribble(
-      ~ naam,
-      ~ w,
-      ~ n,
-      ~ k,
-      ~ ihr,
-      ~ ibr,
-      ~ car,
-      ~ materialiteit,
-      "populatie1",
-      100000000,
-      148,
-      1,
-      'H',
-      'H',
-      'H',
-      0.02,
-      "populatie2",
-      100000000,
-      50,
-      0,
-      'L',
-      'L',
-      'H',
-      0.02
-    )
-    r <- eval_stratified(steekproeven = example, zekerheid = 0.95)
-    r
+example <- tribble(
+  ~naam,
+  ~w,
+  ~n,
+  ~k,
+  ~ihr,
+  ~ibr,
+  ~car,
+  ~materialiteit,
+  "populatie1",
+  100000000,
+  148,
+  1,
+  "H",
+  "H",
+  "H",
+  0.02,
+  "populatie2",
+  100000000,
+  50,
+  0,
+  "L",
+  "L",
+  "H",
+  0.02
+)
+r <- eval_stratified(steekproeven = example, zekerheid = 0.95)
+r
 #> $modus_fout_convolutie
 #> [1] 0.00663809
 #> 

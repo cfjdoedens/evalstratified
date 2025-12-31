@@ -1,5 +1,6 @@
 #' @title
-#' Geef equivalent in getrokken foutloze posten voor verlaagde risicoschattingen.
+#' Geef equivalent in getrokken foutloze posten voor
+#' verlaagde risicoschattingen.
 #'
 #' @description
 #' Volgens het HARo is de benodigde zekerheid bij een gegevensgerichte
@@ -21,22 +22,23 @@
 #' @importFrom drawsneeded drawsneeded
 #'
 #' @examples
-#'   fpe <- foutloze_posten_equivalent()
+#' fpe <- foutloze_posten_equivalent()
 #' @export
 foutloze_posten_equivalent <-
-  function(ihr = 'H',
-           ibr = 'H',
-           car = 'H',
+  function(ihr = "H",
+           ibr = "H",
+           car = "H",
            materialiteit = 0.01) {
     # Controleer invoerparameters.
-    stopifnot(ihr %in% c('H', 'M', 'L'))
-    stopifnot(ibr %in% c('H', 'M', 'L'))
-    stopifnot(car %in% c('H', 'M', 'L'))
+    stopifnot(ihr %in% c("H", "M", "L"))
+    stopifnot(ibr %in% c("H", "M", "L"))
+    stopifnot(car %in% c("H", "M", "L"))
 
     hoogste_zekerheid <- 0.95
     benodigde_zekerheid <- haro_nog_nodige_zekerheid(ihr, ibr, car)
     stopifnot(benodigde_zekerheid <= hoogste_zekerheid)
     posten_alles_hoog <- drawsneeded(0, materialiteit, cert = hoogste_zekerheid)
-    posten_niet_alles_hoog <- drawsneeded(0, materialiteit, cert = benodigde_zekerheid)
-    return(posten_alles_hoog - posten_niet_alles_hoog)
+    posten_niet_alles_hoog <-
+      drawsneeded(0, materialiteit, cert = benodigde_zekerheid)
+    posten_alles_hoog - posten_niet_alles_hoog
   }
