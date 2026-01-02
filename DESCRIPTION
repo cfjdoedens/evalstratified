@@ -24,6 +24,7 @@ Imports:
     tibble,
     rlang
 Remotes:
-    cfjdoedens/drawsneeded
+    cfjdoedens/drawsneeded,
+    cfjdoedens/ewgraph
 URL: https://github.com/cfjdoedens/evalstratified
 BugReports: https://github.com/cfjdoedens/evalstratified/issues
