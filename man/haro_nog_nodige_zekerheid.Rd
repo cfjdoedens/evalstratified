@@ -67,7 +67,7 @@ Bovendien eist bijvoorbeeld Standaard 330 van de NBA: \preformatted{
 door de functie foutloze_posten_equivalent() in deze module.
 Die functie, foutloze_posten_equivalent(),
 is weer nodig voor eval_stratified() om om te kunnen gaan
-met steekproeven die zijn uitgevoerd gebaseerd op vershcillende
+met steekproeven die zijn uitgevoerd gebaseerd op verschillende
 zekerheid.
 
 De functie \code{haro_nog_nodige_zekerheid()} geeft daarom ook waarden onder

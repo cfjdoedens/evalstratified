@@ -13,6 +13,8 @@ Description: Given one or more different and not related masses
   of items, which each has been sampled, estimate the overall defect rate.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Depends: 
+    R (>= 4.1.0)
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
