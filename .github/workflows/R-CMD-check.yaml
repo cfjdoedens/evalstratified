@@ -45,7 +45,7 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
         env:
-          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PAT: ${{ secrets.MY_PAT }}
 
       - uses: r-lib/actions/check-r-package@v2
         with:
