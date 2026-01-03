@@ -40,10 +40,23 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      # 1. Standard setup for Linux/macOS (uses pak)
       - uses: r-lib/actions/setup-r-dependencies@v2
+        if: runner.os != 'Windows'
         with:
           extra-packages: any::rcmdcheck
           needs: check
+        env:
+          GITHUB_PAT: ${{ secrets.MY_PAT }}
+
+      # 2. Stable fallback for Windows (uses remotes)
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          install.packages('remotes')
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
+        shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.MY_PAT }}
 
