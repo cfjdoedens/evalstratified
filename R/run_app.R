@@ -1,5 +1,9 @@
 #' Launch the Shiny App
 #'
+#' @importFrom shiny runApp
+#' @importFrom readr read_csv
+#' @importFrom dplyr mutate
+#' @importFrom tibble tibble
 #' @export
 run_app <- function() {
   app_dir <- system.file("shiny", "evalstratified", package = "evalstratified")
