@@ -1,4 +1,13 @@
-url: ~
+url: https://cfjdoedens.github.io/evalstratified/
 template:
   bootstrap: 5
 
+navbar:
+  structure:
+    left:  [intro, reference, articles, tutorials, news]
+    right: [shinyapp, search, github]
+  components:
+    shinyapp:
+      text: "Run Live App"
+      href: https://cfjdoedens.shinyapps.io/evalstratified/
+      icon: fa-rocket
