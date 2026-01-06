@@ -24,7 +24,8 @@ Imports:
     drawsneeded,
     dplyr,
     tibble,
-    rlang
+    rlang,
+    readr
 Remotes:
     cfjdoedens/drawsneeded
 URL: https://github.com/cfjdoedens/evalstratified, https://cfjdoedens.github.io/evalstratified/
