@@ -2,8 +2,10 @@
 #'
 #' @importFrom shiny runApp
 #' @importFrom readr read_csv
-#' @importFrom dplyr mutate
-#' @importFrom tibble tibble
+#' @importFrom dplyr mutate filter
+#' @importFrom tibble tibble as_tibble
+#' @importFrom htmlwidgets JSinstall()
+#' @importFrom rhandsontable rhandsontable hot_to_r hot_col renderRHandsontable rHandsontableOutput hot_table
 #' @export
 run_app <- function() {
   app_dir <- system.file("shiny", "evalstratified", package = "evalstratified")

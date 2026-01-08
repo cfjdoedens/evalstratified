@@ -3,11 +3,31 @@ library(evalstratified)
 library(tibble)
 library(dplyr)
 library(readr)
+library(rhandsontable)
+library(htmlwidgets)
+
+# <--- Make sure this is installed!
 
 # Define risk options used in multiple tabs
 risk_choices <- c("Hoog (H)" = "H", "Midden (M)" = "M", "Laag (L)" = "L")
+risk_vec <- c("H", "M", "L") # For the table dropdowns
 
 ui <- navbarPage("EvalStratified",
+
+                 # --- 1. CSS STYLING FOR GREY ROWS ---
+                 header = tags$head(
+                   tags$style(HTML("
+      /* Define the style for empty/ignored rows */
+      .dimmed {
+        color: #d0d0d0 !important;
+        background-color: #f9f9f9 !important;
+      }
+      /* Optional: Keep the first cell (Name) white so they know where to click */
+      .dimmed:first-child {
+        background-color: #ffffff !important;
+      }
+    "))
+                 ),
 
                  # -------------------------------------------------------------------------
                  # TAB 1: Haro Nog Nodige Zekerheid
@@ -56,9 +76,26 @@ ui <- navbarPage("EvalStratified",
                  tabPanel("Evaluatie Gestratificeerd",
                           sidebarLayout(
                             sidebarPanel(
-                              h4("1. Upload Steekproeven"),
-                              fileInput("file_strat", "Upload CSV Bestand:", accept = ".csv"),
-                              downloadButton("download_template", "Download CSV Template"),
+                              h4("1. Data Invoer"),
+
+                              # --- NEW: Toggle between Upload and Manual ---
+                              radioButtons("input_method", "Methode:",
+                                           choices = c("Handmatige Invoer" = "manual",
+                                                       "CSV Upload" = "upload")),
+
+                              # Panel for CSV Upload
+                              conditionalPanel(
+                                condition = "input.input_method == 'upload'",
+                                fileInput("file_strat", "Upload CSV Bestand:", accept = ".csv"),
+                                downloadButton("download_template", "Download CSV Template")
+                              ),
+
+                              # Panel for Manual Entry
+                              conditionalPanel(
+                                condition = "input.input_method == 'manual'",
+                                helpText("Vul de tabel rechts in. Regels zonder 'naam' worden genegeerd en grijs weergegeven.")
+                              ),
+
                               hr(),
                               h4("2. Instellingen"),
                               numericInput("strat_conf", "Zekerheid (0.95 = 95%):", value = 0.95, min = 0.5, max = 0.999),
@@ -68,7 +105,16 @@ ui <- navbarPage("EvalStratified",
                               hr(),
                               actionButton("run_strat", "Bereken Evaluatie", class = "btn-success", width = "100%")
                             ),
+
                             mainPanel(
+                              # Only show the editable table if "Manual" is selected
+                              conditionalPanel(
+                                condition = "input.input_method == 'manual'",
+                                h4("Invoertabel (Vul hier uw steekproeven in)"),
+                                rHandsontableOutput("hot_input"),
+                                hr()
+                              ),
+
                               tabsetPanel(
                                 tabPanel("Resultaten",
                                          h3("Convolutie Resultaten"),
@@ -76,8 +122,8 @@ ui <- navbarPage("EvalStratified",
                                          h3("Vergelijking"),
                                          tableOutput("table_strat_comp")
                                 ),
-                                tabPanel("Invoer Data",
-                                         h4("Geupload bestand (met berekende kolommen)"),
+                                tabPanel("Gebruikte Data",
+                                         h4("Data zoals verwerkt door het model"),
                                          tableOutput("table_strat_input")
                                 )
                               )
@@ -88,59 +134,102 @@ ui <- navbarPage("EvalStratified",
 
 server <- function(input, output, session) {
 
-  # --- LOGIC TAB 1: HARO ---
+  # --- LOGIC TAB 1 & 2 (Standard) ---
   output$res_haro <- renderText({
-    val <- haro_nog_nodige_zekerheid(
-      ihr = input$haro_ihr,
-      ibr = input$haro_ibr,
-      car = input$haro_car
-    )
+    val <- haro_nog_nodige_zekerheid(input$haro_ihr, input$haro_ibr, input$haro_car)
     paste("Nog nodige zekerheid:", round(val, 4))
   })
 
-  # --- LOGIC TAB 2: FPE ---
   output$res_fpe <- renderText({
-    val <- foutloze_posten_equivalent(
-      ihr = input$fpe_ihr,
-      ibr = input$fpe_ibr,
-      car = input$fpe_car,
-      materialiteit = input$fpe_mat
-    )
+    val <- foutloze_posten_equivalent(input$fpe_ihr, input$fpe_ibr, input$fpe_car, input$fpe_mat)
     paste("Equivalent aantal foutloze posten:", val)
   })
 
   # --- LOGIC TAB 3: STRATIFIED ---
 
-  # 1. Template Download Handler
+  # 1. Download Template Handler
   output$download_template <- downloadHandler(
     filename = function() { "steekproeven_template.csv" },
     content = function(file) {
-      # Create an empty tibble structure that matches user requirements
       df <- tibble(
-        naam = c("Steekproef 1", "Steekproef 2"),
-        w = c(1000000, 500000),
-        n = c(30, 20),
-        k = c(0, 1),
-        ihr = c("H", "L"),
-        ibr = c("H", "L"),
-        car = c("H", "H"),
+        naam = c("Steekproef 1", "Steekproef 2"), w = c(1000000, 500000),
+        n = c(30, 20), k = c(0, 1),
+        ihr = c("H", "L"), ibr = c("H", "L"), car = c("H", "H"),
         materialiteit = c(0.01, 0.01)
       )
       write_csv(df, file)
     }
   )
 
-  # 2. Reactive Calculation
+  # 2. Render the Editable Table (Handsontable)
+  output$hot_input <- renderRHandsontable({
+
+    # Initialize an empty dataframe with 8 rows
+    df <- data.frame(
+      naam = rep(NA_character_, 8),
+      w = rep(NA_real_, 8),
+      n = rep(NA_integer_, 8),
+      k = rep(NA_integer_, 8),
+      ihr = rep("H", 8),
+      ibr = rep("H", 8),
+      car = rep("H", 8),
+      materialiteit = rep(0.01, 8),
+      stringsAsFactors = FALSE
+    )
+
+    rhandsontable(df, stretchH = "all") %>%
+      hot_col("naam", type = "text") %>%
+      hot_col("w", format = "0,0") %>% # Money format
+      hot_col("n", type = "numeric") %>%
+      hot_col("k", type = "numeric") %>%
+      hot_col("ihr", type = "dropdown", source = risk_vec) %>%
+      hot_col("ibr", type = "dropdown", source = risk_vec) %>%
+      hot_col("car", type = "dropdown", source = risk_vec) %>%
+      hot_col("materialiteit", format = "0.00%") %>%
+
+      # --- VISUAL FEEDBACK: Grey out rows without a name ---
+      hot_table(cells = JS("
+        function(row, col, prop) {
+          var cellProperties = {};
+
+          // Check the value of the first column (index 0) for the current row
+          var nameVal = this.instance.getDataAtCell(row, 0);
+
+          // If name is empty or null, apply the 'dimmed' CSS class
+          if (nameVal === null || nameVal === '' || nameVal === void 0) {
+            cellProperties.className = 'dimmed';
+          }
+
+          return cellProperties;
+        }
+      "))
+  })
+
+  # 3. Reactive Calculation (Handles BOTH Upload and Manual)
   strat_results <- eventReactive(input$run_strat, {
-    req(input$file_strat)
 
-    # Read CSV
-    tryCatch({
-      df <- read_csv(input$file_strat$datapath, show_col_types = FALSE)
+    final_df <- NULL
 
-      # Convert inputs to simple tibble expected by function
-      # Ensure data types are correct
-      df <- df %>%
+    if (input$input_method == "upload") {
+      # --- CSV PATH ---
+      req(input$file_strat)
+      tryCatch({
+        final_df <- read_csv(input$file_strat$datapath, show_col_types = FALSE)
+      }, error = function(e) {
+        showNotification("Kan CSV bestand niet lezen.", type = "error")
+        return(NULL)
+      })
+
+    } else {
+      # --- MANUAL PATH ---
+      req(input$hot_input)
+      # Convert the Handsontable data back to an R dataframe
+      raw_df <- hot_to_r(input$hot_input)
+
+      # FILTER: Remove rows where 'naam' is empty or NA
+      final_df <- raw_df %>%
+        as_tibble() %>%
+        filter(!is.na(naam) & naam != "") %>%
         mutate(
           w = as.numeric(w),
           n = as.numeric(n),
@@ -148,33 +237,35 @@ server <- function(input, output, session) {
           materialiteit = as.numeric(materialiteit)
         )
 
-      # Run the package function
+      if (nrow(final_df) == 0) {
+        showNotification("Vul tenminste één regel in met een 'naam'.", type = "warning")
+        return(NULL)
+      }
+    }
+
+    # RUN CALCULATION
+    tryCatch({
       res <- eval_stratified(
-        steekproeven = df,
+        steekproeven = final_df,
         zekerheid = input$strat_conf,
         MC = as.integer(input$strat_mc),
         start = input$strat_seed,
         vergelijk = input$strat_comp
       )
       return(res)
-
     }, error = function(e) {
-      showNotification(paste("Error:", e$message), type = "error")
+      showNotification(paste("Fout in berekening:", e$message), type = "error")
       return(NULL)
     })
   })
 
-  # 3. Output Tables
+  # 4. Output Tables
   output$table_strat_main <- renderTable({
     res <- strat_results()
     req(res)
-
-    # Create a nice summary table
     tibble(
-      Metriek = c("Meest Waarschijnlijke Fout (fractie)",
-                  "Meest Waarschijnlijke Fout (geld)",
-                  "Maximale Fout (fractie)",
-                  "Maximale Fout (geld)"),
+      Metriek = c("Meest Waarschijnlijke Fout (fractie)", "Meest Waarschijnlijke Fout (geld)",
+                  "Maximale Fout (fractie)", "Maximale Fout (geld)"),
       Waarde = c(
         sprintf("%.5f", res$mw_fout_convolutie),
         format(round(res$mw_fout_convolutie_geld, 2), big.mark=".", decimal.mark=","),
@@ -188,7 +279,6 @@ server <- function(input, output, session) {
     res <- strat_results()
     req(res)
     if(is.null(res$vergelijk_met)) return(tibble(Info = "Geen vergelijking gevraagd."))
-
     comp <- res$vergelijk_met
     tibble(
       Scenario = c("Los (Gewogen gemiddelde)", "Als 1 (Gepoolde data)"),
@@ -202,7 +292,6 @@ server <- function(input, output, session) {
   output$table_strat_input <- renderTable({
     res <- strat_results()
     req(res)
-    # Show the enriched tibble (which includes extra_foutloze_posten)
     res$steekproeven
   })
 }

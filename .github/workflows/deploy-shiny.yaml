@@ -27,6 +27,8 @@ jobs:
             any::tibble
             any::dplyr
             any::readr
+            any::rhandsontable
+            any::htmlwidgets
           needs: |
             website
 
