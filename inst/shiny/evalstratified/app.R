@@ -4,15 +4,21 @@ library(tibble)
 library(dplyr)
 library(readr)
 library(rhandsontable)
+library(htmlwidgets)
 
 # Define risk options used in multiple tabs
 risk_choices <- c("Hoog (H)" = "H", "Midden (M)" = "M", "Laag (L)" = "L")
 risk_vec <- c("H", "M", "L")
 
+# Helper functie: Zet "0,95" om naar 0.95 voor berekeningen
+parse_dutch_num <- function(x) {
+  if (is.null(x) || x == "") return(NA)
+  as.numeric(gsub(",", ".", x))
+}
+
 ui <- navbarPage("EvalStratified",
 
-                 # --- THE FIX: FORCE WHITE BACKGROUND ---
-                 # This CSS forces the table cells to be white, overriding any cached 'grey' rules.
+                 # --- HEAD: CSS ONLY (JS removed) ---
                  header = tags$head(
                    tags$style(HTML("
       /* Force all Handsontable cells to be white with black text */
@@ -20,13 +26,11 @@ ui <- navbarPage("EvalStratified",
         background-color: #ffffff !important;
         color: #000000 !important;
       }
-      /* Optional: Make the cell you are currently editing light blue so you can see it */
       .handsontable td.current {
         background-color: #e6f2ff !important;
       }
     "))
                  ),
-                 # ---------------------------------------
 
                  # -------------------------------------------------------------------------
                  # TAB 1: Haro Nog Nodige Zekerheid
@@ -59,7 +63,7 @@ ui <- navbarPage("EvalStratified",
                               selectInput("fpe_ihr", "Inherent Risico (ihr):", choices = risk_choices),
                               selectInput("fpe_ibr", "Interne Beheersing (ibr):", choices = risk_choices),
                               selectInput("fpe_car", "Cijferanalyse (car):", choices = risk_choices),
-                              numericInput("fpe_mat", "Materialiteit (fractie):", value = 0.01, min = 0.0001, max = 1, step = 0.001)
+                              textInput("fpe_mat", "Materialiteit (fractie):", value = "0,01")
                             ),
                             mainPanel(
                               h3("Resultaat"),
@@ -81,14 +85,12 @@ ui <- navbarPage("EvalStratified",
                                            choices = c("Handmatige Invoer" = "manual",
                                                        "CSV Upload" = "upload")),
 
-                              # Panel for CSV Upload
                               conditionalPanel(
                                 condition = "input.input_method == 'upload'",
                                 fileInput("file_strat", "Upload CSV Bestand:", accept = ".csv"),
                                 downloadButton("download_template", "Download CSV Template")
                               ),
 
-                              # Panel for Manual Entry
                               conditionalPanel(
                                 condition = "input.input_method == 'manual'",
                                 helpText("Vul de tabel rechts in.")
@@ -96,16 +98,16 @@ ui <- navbarPage("EvalStratified",
 
                               hr(),
                               h4("2. Instellingen"),
-                              numericInput("strat_conf", "Zekerheid (0.95 = 95%):", value = 0.95, min = 0.5, max = 0.999),
+                              textInput("strat_conf", "Zekerheid (0,95 = 95%):", value = "0,95"),
+
                               numericInput("strat_mc", "Monte Carlo Iteraties:", value = 100000, min = 1000, step = 10000),
                               numericInput("strat_seed", "Seed (Startwaarde):", value = 1),
-                              checkboxInput("strat_comp", "Vergelijk met 'Als 1' methode", value = TRUE),
+                              checkboxInput("strat_comp", "Vergelijk met andere methoden", value = TRUE),
                               hr(),
                               actionButton("run_strat", "Bereken Evaluatie", class = "btn-success", width = "100%")
                             ),
 
                             mainPanel(
-                              # Only show the editable table if "Manual" is selected
                               conditionalPanel(
                                 condition = "input.input_method == 'manual'",
                                 h4("Invoertabel"),
@@ -120,8 +122,8 @@ ui <- navbarPage("EvalStratified",
                                          h3("Vergelijking"),
                                          tableOutput("table_strat_comp")
                                 ),
-                                tabPanel("Gebruikte Data",
-                                         h4("Data zoals verwerkt door het model"),
+                                tabPanel("Samengenomen steekproeven",
+                                         h4("Data en resultaten per steekproef zoals verwerkt door het model"),
                                          tableOutput("table_strat_input")
                                 )
                               )
@@ -135,17 +137,21 @@ server <- function(input, output, session) {
   # --- LOGIC TAB 1 & 2 ---
   output$res_haro <- renderText({
     val <- haro_nog_nodige_zekerheid(input$haro_ihr, input$haro_ibr, input$haro_car)
-    paste("Nog nodige zekerheid:", round(val, 4))
+    formatted_val <- format(round(val, 4), decimal.mark = ",", nsmall = 4)
+    paste("Nog nodige zekerheid:", formatted_val)
   })
 
   output$res_fpe <- renderText({
-    val <- foutloze_posten_equivalent(input$fpe_ihr, input$fpe_ibr, input$fpe_car, input$fpe_mat)
-    paste("Equivalent aantal foutloze posten:", val)
+    mat_val <- parse_dutch_num(input$fpe_mat)
+    validate(need(!is.na(mat_val), "Vul een geldig getal in voor materialiteit"))
+
+    val <- foutloze_posten_equivalent(input$fpe_ihr, input$fpe_ibr, input$fpe_car, mat_val)
+    formatted_val <- format(round(val, 0), big.mark = ".", decimal.mark = ",")
+    paste("Equivalent aantal foutloze posten:", formatted_val)
   })
 
   # --- LOGIC TAB 3 ---
 
-  # 1. Download Template Handler
   output$download_template <- downloadHandler(
     filename = function() { "steekproeven_template.csv" },
     content = function(file) {
@@ -159,10 +165,9 @@ server <- function(input, output, session) {
     }
   )
 
-  # 2. Render the Editable Table (Standard Clean Table)
+  # 2. Render the Editable Table
   output$hot_input <- renderRHandsontable({
 
-    # Initialize an empty dataframe with 8 rows
     df <- data.frame(
       naam = rep(NA_character_, 8),
       w = rep(NA_real_, 8),
@@ -175,19 +180,56 @@ server <- function(input, output, session) {
       stringsAsFactors = FALSE
     )
 
+    # --- RENDERER 1: GELD (1.000,00) ---
+    renderer_nl_money <- JS("
+      function(instance, td, row, col, prop, value, cellProperties) {
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        if (value !== null && value !== void 0 && value !== '' && !isNaN(value)) {
+           var numVal = parseFloat(value);
+           td.innerHTML = numVal.toLocaleString('nl-NL', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+           });
+        }
+        td.style.background = 'white';
+        td.style.color = 'black';
+        td.style.textAlign = 'right';
+      }
+    ")
+
+    # --- RENDERER 2: PERCENTAGES (1,00%) ---
+    renderer_nl_percent <- JS("
+      function(instance, td, row, col, prop, value, cellProperties) {
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        if (value !== null && value !== void 0 && value !== '' && !isNaN(value)) {
+           var numVal = parseFloat(value);
+           td.innerHTML = numVal.toLocaleString('nl-NL', {
+              style: 'percent',
+              minimumFractionDigits: 2
+           });
+        }
+        td.style.background = 'white';
+        td.style.color = 'black';
+        td.style.textAlign = 'right';
+      }
+    ")
+
     rhandsontable(df, stretchH = "all") %>%
       hot_col("naam", type = "text") %>%
-      hot_col("w", format = "0,0") %>%
+      hot_col("w", type = "numeric", renderer = renderer_nl_money) %>%
       hot_col("n", type = "numeric") %>%
       hot_col("k", type = "numeric") %>%
       hot_col("ihr", type = "dropdown", source = risk_vec) %>%
       hot_col("ibr", type = "dropdown", source = risk_vec) %>%
       hot_col("car", type = "dropdown", source = risk_vec) %>%
-      hot_col("materialiteit", format = "0.00%")
+      hot_col("materialiteit", type = "numeric", renderer = renderer_nl_percent)
   })
 
   # 3. Reactive Calculation
   strat_results <- eventReactive(input$run_strat, {
+
+    conf_val <- parse_dutch_num(input$strat_conf)
+    validate(need(!is.na(conf_val), "Vul een geldig getal in voor Zekerheid"))
 
     final_df <- NULL
 
@@ -201,11 +243,9 @@ server <- function(input, output, session) {
       })
 
     } else {
-      # --- MANUAL PATH ---
       req(input$hot_input)
       raw_df <- hot_to_r(input$hot_input)
 
-      # Filter empty rows
       final_df <- raw_df %>%
         as_tibble() %>%
         filter(!is.na(naam) & naam != "") %>%
@@ -222,11 +262,10 @@ server <- function(input, output, session) {
       }
     }
 
-    # Run Calculation
     tryCatch({
       res <- eval_stratified(
         steekproeven = final_df,
-        zekerheid = input$strat_conf,
+        zekerheid = conf_val,
         MC = as.integer(input$strat_mc),
         start = input$strat_seed,
         vergelijk = input$strat_comp
@@ -246,10 +285,10 @@ server <- function(input, output, session) {
       Metriek = c("Meest Waarschijnlijke Fout (fractie)", "Meest Waarschijnlijke Fout (geld)",
                   "Maximale Fout (fractie)", "Maximale Fout (geld)"),
       Waarde = c(
-        sprintf("%.5f", res$mw_fout_convolutie),
-        format(round(res$mw_fout_convolutie_geld, 2), big.mark=".", decimal.mark=","),
-        sprintf("%.5f", res$max_fout_convolutie),
-        format(round(res$max_fout_convolutie_geld, 2), big.mark=".", decimal.mark=",")
+        format(round(res$mw_fout_convolutie, 5), decimal.mark = ",", nsmall = 5),
+        format(round(res$mw_fout_convolutie_geld, 2), big.mark = ".", decimal.mark = ",", nsmall = 2),
+        format(round(res$max_fout_convolutie, 5), decimal.mark = ",", nsmall = 5),
+        format(round(res$max_fout_convolutie_geld, 2), big.mark = ".", decimal.mark = ",", nsmall = 2)
       )
     )
   })
@@ -262,16 +301,49 @@ server <- function(input, output, session) {
     tibble(
       Scenario = c("Los (Gewogen gemiddelde)", "Als 1 (Gepoolde data)"),
       `Max Fout (Geld)` = c(
-        format(round(comp$max_fout_los_geld, 2), big.mark=".", decimal.mark=","),
-        format(round(comp$max_fout_als1_geld, 2), big.mark=".", decimal.mark=",")
+        format(round(comp$max_fout_los_geld, 2), big.mark = ".", decimal.mark = ",", nsmall = 2),
+        format(round(comp$max_fout_als1_geld, 2), big.mark = ".", decimal.mark = ",", nsmall = 2)
       )
     )
   })
 
+  # FIX VOOR TAB "GEBRUIKTE DATA"
   output$table_strat_input <- renderTable({
     res <- strat_results()
     req(res)
-    res$steekproeven
+
+    # Kopieer dataframe
+    df_disp <- res$steekproeven
+
+    # 1. Format Waarde (w)
+    if("w" %in% names(df_disp)) {
+      df_disp$w <- format(round(df_disp$w, 2), big.mark = ".", decimal.mark = ",", nsmall = 2, scientific = FALSE)
+    }
+
+    # 2. Format Materialiteit
+    if("materialiteit" %in% names(df_disp)) {
+      df_disp$materialiteit <- format(df_disp$materialiteit, big.mark = ",", decimal.mark = ",", scientific = FALSE)
+    }
+
+    # 3. Format Integers
+    if("n" %in% names(df_disp)) df_disp$n <- format(df_disp$n, scientific = FALSE)
+    if("k" %in% names(df_disp)) df_disp$k <- format(df_disp$k, scientific = FALSE)
+
+    # 4. AANGEPAST: Extra Foutloze Posten (0 decimalen)
+    if("extra_foutloze_posten" %in% names(df_disp)) {
+      df_disp$extra_foutloze_posten <- format(round(df_disp$extra_foutloze_posten, 0),
+                                              big.mark = ".", decimal.mark = ",", scientific = FALSE)
+    }
+
+    # 5. Fracties (5 decimalen)
+    if("mw_fout" %in% names(df_disp)) {
+      df_disp$mw_fout <- format(round(df_disp$mw_fout, 5), big.mark = ".", decimal.mark = ",", scientific = FALSE)
+    }
+    if("max_fout" %in% names(df_disp)) {
+      df_disp$max_fout <- format(round(df_disp$max_fout, 5), big.mark = ".", decimal.mark = ",", scientific = FALSE)
+    }
+
+    df_disp
   })
 }
 
