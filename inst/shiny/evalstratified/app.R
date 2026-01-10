@@ -322,7 +322,7 @@ server <- function(input, output, session) {
 
     # 2. Format Materialiteit
     if("materialiteit" %in% names(df_disp)) {
-      df_disp$materialiteit <- format(df_disp$materialiteit, big.mark = ",", decimal.mark = ",", scientific = FALSE)
+      df_disp$materialiteit <- format(df_disp$materialiteit, big.mark = ".", decimal.mark = ",", scientific = FALSE)
     }
 
     # 3. Format Integers

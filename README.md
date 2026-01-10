@@ -161,3 +161,20 @@ r
 #> $invoer$vergelijk
 #> [1] TRUE
 ```
+
+## Live version
+
+On <https://cfjdoedens.shinyapps.io/evalstratified/> one can find a live
+version of this package.
+
+## Ideas for further development
+
+1.  Add to live version the option to choose between
+
+    - Dutch text + European number notation, or
+    - English text + European number notation, or
+    - English text + English number notation
+
+2.  Add informative texts to the various numbers that can be filled in,
+    or are produced. This info appears by pressing little icons (“i” or
+    so) near the subject matter.
