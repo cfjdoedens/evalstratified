@@ -249,10 +249,10 @@ eval_stratified(steekproeven = steekproeven)
 #> [1] 0
 #> 
 #> $vergelijk_met$max_fout_los
-#> [1] 0.0297634
+#> [1] 0.1048501
 #> 
 #> $vergelijk_met$max_fout_los_geld
-#> [1] 1134141
+#> [1] 3995340
 #> 
 #> $vergelijk_met$mw_fout_als1
 #> [1] 0
