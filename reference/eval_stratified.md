@@ -3,6 +3,10 @@
 Het samennemen van de resultaten gebeurt door convolutie van de
 foutkanskrommes van de afzonderlijke steekproeven tot 1 foutkanskromme.
 
+Waar van toepassing worden 100%-getoetste posten (het hoogstratum of
+topstratum) als deterministische factoren opgeteld bij de resulterende
+statistische verdeling.
+
 We berekenen de meest waarschijnlijke en de maximale fout als fractie en
 in geld.
 
@@ -27,13 +31,21 @@ eval_stratified(
 - steekproeven:
 
   Een tibble. Elke regel van de tibble beschrijft 1 steekproef, dus 1
-  van de genomen steekproeven. De tibble heeft als kolommen: naam w n k
-  car cir dir. Dit zijn repectievelijk `naam`, een aanduiding van de
-  steekproef, `w`, de omvang in geld van de massa waaruit getrokken is,
-  `n`, het aantal getrokken posten, `k`, de som van de foutfracties van
-  de posten, `ihr`, inherent risico, te weten H, M of L, `ibr`, intern
-  beheersingsrisico, te weten H, M of L, `car`, cijferanalyserisico, te
-  weten H, M of L, en `materialiteit`, als fractie van de totale massa
+  van de genomen steekproeven. De tibble eist de volgende expliciete
+  kolommen voor redundantie en veiligheid: `naam`, een aanduiding van de
+  steekproef, `waarde_laag`, de omvang in geld van de massa waaruit de
+  steekproef (laagstratum) is getrokken, `n_laag`, het aantal getrokken
+  posten in het laagstratum, `k_laag`, de som van de foutfracties van de
+  posten in het laagstratum, `ihr`, inherent risico, te weten H, M of L,
+  `ibr`, intern beheersingsrisico, te weten H, M of L, `car`,
+  cijferanalyserisico, te weten H, M of L, en `materialiteit`, als
+  fractie van de totale massa. `fout_hoog`, Het gevonden foutbedrag in
+  het 100%-getoetste topstratum. `goed_hoog`, Het goedgekeurde bedrag in
+  het 100%-getoetste topstratum. `n_hoog`, Het aantal posten in het
+  hoogstratum. `n_totaal`, Het totale aantal posten in deze audit
+  (n_laag + n_hoog). `waarde_hoog`, De totale boekwaarde van het
+  hoogstratum (fout_hoog + goed_hoog). `waarde_populatie`, De totale
+  boekwaarde van de hele populatie (waarde_laag + waarde_hoog).
 
 - zekerheid:
 
@@ -56,38 +68,8 @@ eval_stratified(
 
 ## Value
 
-Een lijst, bestaande uit
-
-- `mw_fout_convolutie`, de meest waarschijnlijke fout als fractie van de
-  totale massa in geld
-
-- `max_fout_convolutie`, de maximale fout als fractie van de totale
-  massa in geld
-
-- en zo ook voor modus, mediaan en gemiddelde
-
-- als vergelijk == TRUE een lijst `vergelijk_met`, met daarin
-  vergelijkende cijfers voor "los" en voor "als1". Hierbij staat "los"
-  voor de samengenomen, gewogen, cijfers der afzonderlijke steekproeven,
-  en "als1" voor als alle steken en de resultaten daarvan worden
-  beschouwd als voor 1 steekproef getrokken uit 1 massa.
-
-- `steekproeven`, de invoer tibble, verrijkt per steekproef: met
-
-  - `extra_foutloze_posten`, het aantal foutloze posten dat equivalent
-    is aan ihr+ibr+car volgens het ARM model en de interpretatie daarvan
-    door de ADR,
-
-  - `toch_fouten`, TRUE of FALSE, geeft aan of tenminste 1 van ihr, ibr
-    of car niet op hoog staat en er wel fouten zijn gevonden
-
-  - `mw_fout`, als vergelijk TRUE, de meest waarschijnlijke fout voor
-    die steekproef als fractie van de massa in geld van de steekproef,
-
-  - `max_fout`, als vergelijk TRUE, de maximale fout als fractie van de
-    massa in geld van de steekproef,
-
-- `invoer`, een lijst bestaande uit de invoerparameters
+Een lijst, bestaande uit de convolutie-uitkomsten (fracties en geld),
+eventuele vergelijkingen, en de verrijkte invoergegevens.
 
 ## Details
 
@@ -134,8 +116,8 @@ te doen bij 64% en bij 95%. Dit zijn respectievelijk 50 en 148. Het
 verschil is 148-50 = 98 posten. Daarna berekenen we totale maximale fout
 op basis van een zekerheid van 95%, en steekproef1, 148 posten waarvan 1
 fout, en steekproef2, met 50 + 98 posten, waarvan 0 fout. De maximale
-fout is dan 1,83% ofwel ongeveer3.660.000. De meest waarschijnlijke fout
-0,52% ofwel ongeveer 1.160.000 euro.
+fout is dan 1,83% ofwel ongeveer 3.660.000. De meest waarschijnlijke
+fout 0,52% ofwel ongeveer 1.160.000 euro.
 
 Het is de verantwoordelijkheid van de auditor hoe om te gaan met een
 steekproef waarbij de risicoinschatting niet op H staat en er toch
@@ -149,151 +131,3 @@ evaluatie:
 
 - voor alle steekproeven samen, waarbij ze beschouwd worden als te zijn
   getrokken op 1 massa, en als 1 steekproef.
-
-## Examples
-
-``` r
-# Creeer lege invoertibbe.
-steekproeven <-
-  tibble::tribble(~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit)
-naam <- "Steekproef1" # De naam van de 1e steekproef.
-w <- 35060542 # Het gewicht van de steekproef, als geldomvang van de massa
-# waarover wordt gestoken.
-n <- 31 # Het aantal getrokken en geevalueerde posten.
-k <- 0 # De som van de foutfracties.
-ihr <- "H"
-ibr <- "H"
-car <- "H"
-materialiteit <- 0.01
-steekproeven <-
-  tibble::add_row(steekproeven,
-    naam = naam,
-    w = w,
-    n = n,
-    k = k,
-    ihr = ihr,
-    ibr = ibr,
-    car = car,
-    materialiteit = materialiteit
-  )
-
-naam <- "Steekproef2" # De naam van de 2e steekproef.
-w <- 3044699 # Het gewicht van de steekproef, als geldomvang van de
-# massa waarover wordt gestoken.
-n <- 8 # Het aantal getrokken en geevalueerde posten.
-k <- 0 # De som van de foutfracties.
-ihr <- "H"
-ibr <- "H"
-car <- "H"
-materialiteit <- 0.1
-tibble::add_row(steekproeven,
-  naam = naam,
-  w = w,
-  n = n,
-  k = k,
-  ihr = ihr,
-  ibr = ibr,
-  car = car,
-  materialiteit = materialiteit
-)
-#> # A tibble: 2 × 8
-#>   naam               w     n     k ihr   ibr   car   materialiteit
-#>   <chr>          <dbl> <dbl> <dbl> <chr> <chr> <chr>         <dbl>
-#> 1 Steekproef1 35060542    31     0 H     H     H              0.01
-#> 2 Steekproef2  3044699     8     0 H     H     H              0.1 
-
-# Kortheidshalve hadden we steekproeven ook kunnen invoeren als:
-steekproeven <- tibble::tribble(
-  ~naam, ~w, ~n, ~k, ~ihr, ~ibr, ~car, ~materialiteit,
-  "Steekproef1", 35060542, 31, 0, "H", "H", "H", 0.01,
-  "Steekproef2", 3044699, 8, 0, "H", "H", "H", 0.01
-)
-
-# Evalueer steekproef1 en steekproef2 samen.
-eval_stratified(steekproeven = steekproeven)
-#> $modus_fout_convolutie
-#> [1] 0.01497407
-#> 
-#> $modus_fout_convolutie_geld
-#> [1] 570590.6
-#> 
-#> $mediaan_fout_convolutie
-#> [1] 0.02848983
-#> 
-#> $mediaan_fout_convolutie_geld
-#> [1] 1085612
-#> 
-#> $gemiddelde_fout_convolutie
-#> [1] 0.03586305
-#> 
-#> $gemiddelde_fout_convolutie_geld
-#> [1] 1366570
-#> 
-#> $mw_fout_convolutie
-#> [1] 0.01497407
-#> 
-#> $mw_fout_convolutie_geld
-#> [1] 570590.6
-#> 
-#> $max_fout_convolutie
-#> [1] 0.09124468
-#> 
-#> $max_fout_convolutie_geld
-#> [1] 3476901
-#> 
-#> $vergelijk_met
-#> $vergelijk_met$mw_fout_los
-#> [1] 0
-#> 
-#> $vergelijk_met$mw_fout_los_geld
-#> [1] 0
-#> 
-#> $vergelijk_met$max_fout_los
-#> [1] 0.1048501
-#> 
-#> $vergelijk_met$max_fout_los_geld
-#> [1] 3995340
-#> 
-#> $vergelijk_met$mw_fout_als1
-#> [1] 0
-#> 
-#> $vergelijk_met$mw_fout_als1_geld
-#> [1] 0
-#> 
-#> $vergelijk_met$max_fout_als1
-#> [1] 0.07215752
-#> 
-#> $vergelijk_met$max_fout_als1_geld
-#> [1] 2749580
-#> 
-#> 
-#> $steekproeven
-#> # A tibble: 2 × 12
-#>   naam       w     n     k ihr   ibr   car   materialiteit extra_foutloze_posten
-#>   <chr>  <dbl> <dbl> <dbl> <chr> <chr> <chr>         <dbl>                 <dbl>
-#> 1 Stee… 3.51e7    31     0 H     H     H              0.01                     0
-#> 2 Stee… 3.04e6     8     0 H     H     H              0.01                     0
-#> # ℹ 3 more variables: toch_fouten <lgl>, mw_fout <dbl>, max_fout <dbl>
-#> 
-#> $invoer
-#> $invoer$steekproeven
-#> # A tibble: 2 × 8
-#>   naam               w     n     k ihr   ibr   car   materialiteit
-#>   <chr>          <dbl> <dbl> <dbl> <chr> <chr> <chr>         <dbl>
-#> 1 Steekproef1 35060542    31     0 H     H     H              0.01
-#> 2 Steekproef2  3044699     8     0 H     H     H              0.01
-#> 
-#> $invoer$zekerheid
-#> [1] 0.95
-#> 
-#> $invoer$MC
-#> [1] 1e+07
-#> 
-#> $invoer$start
-#> [1] 1
-#> 
-#> $invoer$vergelijk
-#> [1] TRUE
-#> 
-#> 
-```
