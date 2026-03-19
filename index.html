@@ -50,11 +50,11 @@
 <div class="page-header"><h1 id="evalstratified">evalstratified<a class="anchor" aria-label="anchor" href="#evalstratified"></a>
 </h1></div>
 <p>&lt; !–badges:start- -&gt; <a href="https://github.com/cfjdoedens/evalstratified/actions/workflows/%20R%20-%20CMD%20-%20check.yaml" class="external-link"><img src="https://github.com/cfjdoedens/evalstratified/actions/workflows/%20R%20-%20CMD%20-%20check.yaml/badge.svg" alt="R - CMD - check"></a> <a href="https://github.com/cfjdoedens/evalstratified/actions/workflows/%20deploy%20-%20shiny.yaml" class="external-link"><img src="https://github.com/cfjdoedens/evalstratified/actions/workflows/%20deploy%20-%20shiny.yaml/badge.svg" alt="Deploy Shiny App"></a> &lt; !–badges:end- -&gt;</p>
-<p>The goal of evalstratified is to make an estimate of the error fraction of a set of monetary files. This based on a global level of certainty, a level of certainty per file, and on error fractions found in sampled items of each of these files.</p>
+<p>Het doel van evalstratified is om een schatting te maken van de foutfractie van een aantal monetaire bestanden. Dit gebeurt op basis van een algeheel betrouwbaarheidsniveau, een betrouwbaarheidsniveau per bestand, en de foutfracties die zijn gevonden in de steekproefposten van elk van deze bestanden.</p>
 <div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+<h2 id="installatie">Installatie<a class="anchor" aria-label="anchor" href="#installatie"></a>
 </h2>
-<p>You can install the development version of evalstratified from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>Je kunt de ontwikkelversie van evalstratified laden van <a href="https://github.com/" class="external-link">GitHub</a>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"devtools"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
@@ -62,185 +62,89 @@
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"cfjdoedens/evalstratified"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="de-basis-meerdere-steekproeven-combineren">De basis: meerdere steekproeven combineren<a class="anchor" aria-label="anchor" href="#de-basis-meerdere-steekproeven-combineren"></a>
 </h2>
-<p>Steekproef1 is gebaseerd op een zekerheid van 95% omdat ihr, ibr en car alledrie op hoog (H) staan. We kunnen dit ook narekenen met <code>haro_nog_nodige_zekerheid(ihr = "H", ibr = "H", car = "H")</code>. Dit levert inderdaad 0.95 op. De materialiteit is 2%. Het betreft 100 miljoen euro. Om te bepalen hoeveel posten we moeten trekken voor steekproef1 gebruiken we <code>drawsneeded::drawsneeded(0, 0.02, cert = 0.95)</code>. Resultaat:148. Na trekken en evalueren blijkt er 1 post fout te zijn.</p>
-<p>Bij steekproef2 staan ihr en ibr allebei op laag en alleen car staat op hoog. We berekenen de benodigde zekerheid met <code>haro_nog_nodige_zekerheid(ihr = "L", ibr = "L", car = "H")</code>. Dit levert 0.6323529 op. Het betreft ook 100 miljoen euro en een materialiteit van ook 2%. Voor steekproef2 bepalen we vervolgens het aantal te trekken posten met <code>drawsneeded::drawsneeded(0, 0.02, cert = 0.64)</code>. Resultaat:50. Na trekken en evalueren blijkt geen enkele post hiervan fout te zijn.</p>
+<p>De functie van <code>evalstratified</code> is het statistisch samenvoegen van de evaluaties van meerdere, afzonderlijke steekproeven. Dit is nodig in de auditpraktijk wanneer een totale populatie bestaat uit verschillende deelpopulaties (bijvoorbeeld verschillende locaties, systemen of processen) waaruit separate steekproeven zijn getrokken.</p>
+<p>In het meest basale scenario bevatten deze steekproeven geen uitzonderlijk grote posten (alle gecontroleerde posten zijn kleiner dan het steekproefinterval). In dit geval zijn er dus geen posten die integraal (100%) gecontroleerd hoeven te worden; de zogenaamde ‘hoogstrata’ zijn leeg (ofwel € 0).</p>
+<p>Wanneer je de resultaten van deze losse steekproeven simpelweg bij elkaar op zou tellen, zou je de statistische onzekerheid verkeerd inschatten. <code>evalstratified</code> lost dit op door de afzonderlijke kansverdelingen van de verschillende steekproeven wiskundig te combineren door middel van <strong>convolutie</strong>. Het resultaat is één zuivere, gecombineerde kanskromme met één correct berekende maximale fout(fractie) en precisie voor de totale organisatie.</p>
+<div class="section level3">
+<h3 id="verfijning-hoogstratum-en-laagstratum">Verfijning: Hoogstratum en Laagstratum<a class="anchor" aria-label="anchor" href="#verfijning-hoogstratum-en-laagstratum"></a>
+</h3>
+<p>In de praktijk komt het voor dat bestanden wél enkele zeer grote posten bevatten die integraal gecontroleerd worden. Om hier wiskundig correct mee om te gaan, biedt <code>evalstratified</code> een verfijning op bovenstaand basisprincipe: het onderscheid tussen een <strong>hoogstratum</strong> en een <strong>laagstratum</strong> binnen de steekproeven. Het hoogstratum bevat de integraal gecontroleerde posten, deze zijn niet geextrapoleerd bij de steekproefevaluatie. Het laagstrum bevat de posten kleiner dan het steekproefinterval. Deze posten zijn geextrapoleerd en leveren samen een kanskromme die beschrijft wat de kans is op de mogeljke foutfractie in de massa van posten kleiner dan het steekproefinterval.</p>
+</div>
+<div class="section level3">
+<h3 id="voorbeelden-van-verschillende-evaluatie-scenarios">Voorbeelden van verschillende evaluatie-scenario’s<a class="anchor" aria-label="anchor" href="#voorbeelden-van-verschillende-evaluatie-scenarios"></a>
+</h3>
+<p>Om de flexibiliteit van <code>evalstratified</code> te demonstreren, schetsen we hieronder drie veelvoorkomende praktijksituaties en hoe het package hiermee omgaat. Het is hierbij belangrijk om te onthouden dat de uiteindelijke evaluatie een <em>foutfractie</em> is: de totale (geprojecteerde) fout gedeeld door de totale populatieomvang.</p>
+<p><strong>Scenario 1: Geen fouten in de integraal gecontroleerde posten (Het verdunningseffect)</strong> We evalueren twee steekproeven die beide bestaan uit een laagstratum (de getrokken steekproef) en een hoogstratum (de 100% gecontroleerde grote posten). In de steekproeven (laagstrata) zitten enkele fouten, maar in de hoogstrata van beide bestanden worden <em>geen</em> fouten aangetroffen (absolute fout = € 0). <em>Hoe <code>evalstratified</code> dit verwerkt:</em> Het package berekent via convolutie de gecombineerde onzekerheid en geprojecteerde fout van de twee laagstrata. Omdat de fout in de hoogstrata € 0 is, wordt de teller (de fout) niet verhoogd, maar de noemer (de totale populatieomvang) wél. Het foutloze hoogstratum ‘verdunt’ hiermee de fout, waardoor de uiteindelijke maximale foutfractie voor het geheel significant daalt.</p>
+<p><strong>Scenario 2: Wel fouten in de integraal gecontroleerde posten</strong> We nemen dezelfde opzet als hierboven, maar nu worden er wél fouten gevonden in de grote posten. In het hoogstratum van steekproef 1 vinden we een werkelijke fout van € 15.000, en in steekproef 2 een fout van € 5.000. <em>Hoe <code>evalstratified</code> dit verwerkt:</em> De statistische onzekerheid van de laagstrata wordt opnieuw zuiver via convolutie gecombineerd. Vervolgens telt het package de absolute, vastgestelde fouten uit de hoogstrata (samen € 20.000) direct op bij de uitkomst van de convolutie (de teller), en deelt dit door de totale omvang van alle strata (de noemer). De foutfractie stijgt hierdoor exact in verhouding met de gevonden harde fouten, zonder onterechte extra statistische opslag.</p>
+<p><strong>Scenario 3: Een volledige populatie wordt integraal gecontroleerd</strong> Het package kan ook overweg met asymmetrische controlesituaties. Stel, bestand 1 wordt regulier gecontroleerd via een steekproef (laagstratum). Bestand 2 wordt door de auditor echter <em>volledig</em> (100%) gecontroleerd. Hierbij wordt in totaal voor € 12.500 aan fouten gevonden in bestand 2. <em>Hoe <code>evalstratified</code> dit verwerkt:</em> Bestand 2 heeft door de 100% controle geen statistische onzekerheid meer. De gebruiker van het package geeft daarom voor het laagstratum een omvang van 0 euro op, en de 100% populatie wordt door de gebruiker in de parameters fout_hoog en goed_hoog geplaatst. Dus het integraal gecontroleerde bestand wordt dan door het package in zijn geheel behandeld als één groot ‘hoogstratum’. <code>evalstratified</code> berekent de verdeling van bestand 1, slaat de convolutie voor bestand 2 over, en voegt de omvang én de exacte fout van € 12.500 van bestand 2 direct toe aan de breuk voor de algehele eindevaluatie.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="de-rol-van-risicofactoren-materialiteit-en-virtuele-posten">De rol van risicofactoren, materialiteit en “virtuele” posten<a class="anchor" aria-label="anchor" href="#de-rol-van-risicofactoren-materialiteit-en-virtuele-posten"></a>
+</h2>
+<p>Wanneer bestanden uit verschillende bedrijfsonderdelen of processen komen, worden ze zelden met exact hetzelfde risicoprofiel gecontroleerd. <code>evalstratified</code> is speciaal ontworpen om steekproeven met verschillende risico-inschattingen toch wiskundig zuiver met elkaar te kunnen combineren. Om te begrijpen hoe het package dit doet, is het belangrijk te kijken naar de wisselwerking tussen risicofactoren, materialiteit en zogenaamde “virtuele foutloze posten”.</p>
+<p><strong>De basis: Risico en Materialiteit</strong> In de auditpraktijk wordt de benodigde statistische zekerheid voor een steekproef bepaald door de inschatting van het Inherent Risico (IHR), het Interne Beheersingsrisico (IBR) en het risico van Cijferbeoordelingen (CAR).</p>
+<ul>
+<li>Staan al deze risicofactoren op “Hoog”, dan leunt de accountant volledig op de steekproef en is er bijvoorbeeld 95% zekerheid nodig.</li>
+<li>Is het IBR “Laag” (bijvoorbeeld door een sterke interne controle), dan mag de vereiste zekerheid uit de steekproef omlaag (bijv. naar 64%).</li>
+</ul>
+<p>De vereiste zekerheid bepaalt, in combinatie met de vastgestelde <strong>materialiteit</strong> (de maximaal acceptabele fout in de populatie), hoeveel posten er fysiek getrokken moeten worden. Bij een lager risico is de steekproefomvang kleiner.</p>
+<p><strong>Het concept van “Virtuele Foutloze Posten”</strong> Wiskundig gezien kun je een verlaagd risico (bijv. steunen op interne controles) op een zeer elegante manier vertalen. Het feit dat de interne controle effectief is en een deel van het risico afdekt, fungeert als statistisch bewijs. Je kunt dit zien alsof de interne systemen vooraf al een aantal posten foutloos voor je hebben gecontroleerd.</p>
+<p>Dit noemen we <strong>virtuele foutloze steekproefposten</strong>. Je fysieke steekproefomvang wordt dan weliswaar kleiner, maar wiskundig gezien wordt jouw bewijslast ‘aangevuld’ door de virtuele foutloze posten die voortkomen uit je positieve risicoanalyse.</p>
+<p><strong>Verschillende steekproeven combineren via harmonisatie</strong> Dit concept vormt het wiskundige fundament onder <code>evalstratified</code> bij het combineren van verschillende steekproeven:</p>
+<ul>
+<li>
+<strong>Steekproef A (Hoog risico):</strong> Vereist 95% zekerheid. Er is geen steun op interne controles, dus er zijn <strong>0</strong> virtuele posten. Het benodigde bewijs moet 100% uit de getrokken posten komen.</li>
+<li>
+<strong>Steekproef B (Laag risico):</strong> Vereist slechts 64% zekerheid. De sterke interne controle levert een flinke buffer aan <strong>virtuele foutloze posten</strong> op. Er hoeven fysiek veel minder posten getrokken te worden.</li>
+</ul>
+<p>Als je de resultaten van Steekproef A en B wilt samenvoegen, kun je niet zomaar de gevonden fouten en getrokken aantallen bij elkaar optellen; het statistische vertrekpunt is immers ongelijk.</p>
+<p><code>evalstratified</code> lost dit op door bij de evaluatie voor élke afzonderlijke steekproef het totale bewijs te harmoniseren (fysiek getrokken posten + virtuele foutloze posten op basis van de opgegeven IHR/IBR/CAR-parameters en materialiteit). Pas nadat de kansverdelingen via deze virtuele posten op hetzelfde fundamentele vertrekpunt zijn gebracht, past het package de convolutie toe. Hierdoor weegt de vooraf verkregen zekerheid per bestand zuiver en proportioneel mee in de berekende maximale fout voor de gehele populatie.</p>
+<div class="section level3">
+<h3 id="in-de-praktijk-rekenen-met-risicos-en-virtuele-posten">In de praktijk: Rekenen met risico’s en virtuele posten<a class="anchor" aria-label="anchor" href="#in-de-praktijk-rekenen-met-risicos-en-virtuele-posten"></a>
+</h3>
+<p><code>evalstratified</code> bevat twee ingebouwde hulpfuncties waarmee je deze theoretische stappen zelf inzichtelijk kunt maken en kunt narekenen: <code><a href="reference/haro_nog_nodige_zekerheid.html">haro_nog_nodige_zekerheid()</a></code> en <code><a href="reference/foutloze_posten_equivalent.html">foutloze_posten_equivalent()</a></code>.</p>
+<p><strong>1. De benodigde zekerheid berekenen</strong> Stel, je hebt een deelpopulatie met een Laag Inherent Risico (L), een Midden Intern Beheersingsrisico (M) en een Hoog Cijferanalyserisico (H). Je kunt de exact vereiste statistische zekerheid volgens het HARo-model direct opvragen met de volgende functie:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/cfjdoedens/evalstratified" class="external-link">evalstratified</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">example</span> <span class="op">&lt;-</span> <span class="fu">tribble</span><span class="op">(</span></span>
-<span><span class="op">~</span> <span class="va">naam</span>,</span>
-<span><span class="op">~</span> <span class="va">waarde_laag</span>,</span>
-<span><span class="op">~</span> <span class="va">n_laag</span>,</span>
-<span><span class="op">~</span> <span class="va">k_laag</span>,</span>
-<span><span class="op">~</span> <span class="va">ihr</span>,</span>
-<span><span class="op">~</span> <span class="va">ibr</span>,</span>
-<span><span class="op">~</span> <span class="va">car</span>,</span>
-<span><span class="op">~</span> <span class="va">materialiteit</span>,</span>
-<span><span class="op">~</span> <span class="va">fout_hoog</span>,</span>
-<span><span class="op">~</span> <span class="va">goed_hoog</span>,</span>
-<span><span class="op">~</span> <span class="va">n_hoog</span>,</span>
-<span><span class="op">~</span> <span class="va">n_totaal</span>,</span>
-<span><span class="op">~</span> <span class="va">waarde_hoog</span>,</span>
-<span><span class="op">~</span> <span class="va">waarde_populatie</span>,</span>
-<span><span class="st">"populatie1"</span>,</span>
-<span><span class="fl">100000000</span>,</span>
-<span><span class="fl">148</span>,</span>
-<span><span class="fl">1</span>,</span>
-<span><span class="st">"H"</span>,</span>
-<span><span class="st">"H"</span>,</span>
-<span><span class="st">"H"</span>,</span>
-<span><span class="fl">0.02</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">148</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">100000000</span>,</span>
-<span><span class="st">"populatie2"</span>,</span>
-<span><span class="fl">100000000</span>,</span>
-<span><span class="fl">50</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="st">"L"</span>,</span>
-<span><span class="st">"L"</span>,</span>
-<span><span class="st">"H"</span>,</span>
-<span><span class="fl">0.02</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">50</span>,</span>
-<span><span class="fl">0</span>,</span>
-<span><span class="fl">100000000</span></span>
-<span><span class="op">)</span></span>
+<span><span class="co"># Bereken de benodigde zekerheid voor IHR=L, IBR=M, CAR=H</span></span>
+<span><span class="va">zekerheid</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/haro_nog_nodige_zekerheid.html">haro_nog_nodige_zekerheid</a></span><span class="op">(</span>ihr <span class="op">=</span> <span class="st">"L"</span>, ibr <span class="op">=</span> <span class="st">"M"</span>, car <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/eval_stratified.html">eval_stratified</a></span><span class="op">(</span>steekproeven <span class="op">=</span> <span class="va">example</span>, zekerheid <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
-<span><span class="va">r</span></span>
-<span><span class="co">#&gt; $kanskromme</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt;  density.default(x = convolutie)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Data: convolutie (10000000 obs.);    Bandwidth 'bw' = 0.0001944</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        x                    y            </span></span>
-<span><span class="co">#&gt;  Min.   :-0.0005699   Min.   : 0.000000  </span></span>
-<span><span class="co">#&gt;  1st Qu.: 0.0174854   1st Qu.: 0.002934  </span></span>
-<span><span class="co">#&gt;  Median : 0.0355408   Median : 0.299636  </span></span>
-<span><span class="co">#&gt;  Mean   : 0.0355408   Mean   :13.819181  </span></span>
-<span><span class="co">#&gt;  3rd Qu.: 0.0535962   3rd Qu.:14.842791  </span></span>
-<span><span class="co">#&gt;  Max.   : 0.0716515   Max.   :81.144287  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $populatie_totaal</span></span>
-<span><span class="co">#&gt; [1] 2e+08</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $modus_fout_convolutie</span></span>
-<span><span class="co">#&gt; [1] 0.00663809</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $modus_fout_convolutie_geld</span></span>
-<span><span class="co">#&gt; [1] 1327618</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $mediaan_fout_convolutie</span></span>
-<span><span class="co">#&gt; [1] 0.008923597</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $mediaan_fout_convolutie_geld</span></span>
-<span><span class="co">#&gt; [1] 1784719</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $gemiddelde_fout_convolutie</span></span>
-<span><span class="co">#&gt; [1] 0.009981522</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $gemiddelde_fout_convolutie_geld</span></span>
-<span><span class="co">#&gt; [1] 1996304</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $mw_fout_convolutie</span></span>
-<span><span class="co">#&gt; [1] 0.00663809</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $mw_fout_convolutie_geld</span></span>
-<span><span class="co">#&gt; [1] 1327618</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $max_fout_convolutie</span></span>
-<span><span class="co">#&gt; [1] 0.0208458</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $max_fout_convolutie_geld</span></span>
-<span><span class="co">#&gt; [1] 4169160</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met</span></span>
-<span><span class="co">#&gt; $vergelijk_met$mw_fout_los</span></span>
-<span><span class="co">#&gt; [1] 0.003378378</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met$mw_fout_los_geld</span></span>
-<span><span class="co">#&gt; [1] 675675.7</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met$max_fout_los</span></span>
-<span><span class="co">#&gt; [1] 0.02560712</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met$max_fout_los_geld</span></span>
-<span><span class="co">#&gt; [1] 5121425</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met$mw_fout_als1</span></span>
-<span><span class="co">#&gt; [1] 0.003367003</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met$mw_fout_als1_geld</span></span>
-<span><span class="co">#&gt; [1] 673400.7</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met$max_fout_als1</span></span>
-<span><span class="co">#&gt; [1] 0.01581936</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $vergelijk_met$max_fout_als1_geld</span></span>
-<span><span class="co">#&gt; [1] 3163872</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $steekproeven</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 18</span></span>
-<span><span class="co">#&gt;   naam       waarde_laag n_laag k_laag ihr   ibr   car   materialiteit fout_hoog</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 populatie1   100000000    148      1 H     H     H              0.02         0</span></span>
-<span><span class="co">#&gt; 2 populatie2   100000000     50      0 L     L     H              0.02         0</span></span>
-<span><span class="co">#&gt; # ℹ 9 more variables: goed_hoog &lt;dbl&gt;, n_hoog &lt;dbl&gt;, n_totaal &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   waarde_hoog &lt;dbl&gt;, waarde_populatie &lt;dbl&gt;, extra_foutloze_posten &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   toch_fouten &lt;lgl&gt;, mw_fout &lt;dbl&gt;, max_fout &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $invoer</span></span>
-<span><span class="co">#&gt; $invoer$steekproeven</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 14</span></span>
-<span><span class="co">#&gt;   naam       waarde_laag n_laag k_laag ihr   ibr   car   materialiteit fout_hoog</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 populatie1   100000000    148      1 H     H     H              0.02         0</span></span>
-<span><span class="co">#&gt; 2 populatie2   100000000     50      0 L     L     H              0.02         0</span></span>
-<span><span class="co">#&gt; # ℹ 5 more variables: goed_hoog &lt;dbl&gt;, n_hoog &lt;dbl&gt;, n_totaal &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   waarde_hoog &lt;dbl&gt;, waarde_populatie &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $invoer$zekerheid</span></span>
-<span><span class="co">#&gt; [1] 0.95</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $invoer$MC</span></span>
-<span><span class="co">#&gt; [1] 1e+07</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $invoer$start</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $invoer$vergelijk</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">zekerheid</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.7596154</span></span>
+<span><span class="co"># Output: 0.8015873 (ofwel ~80,2% vereiste zekerheid in plaats van de standaard 95%)</span></span></code></pre></div>
+<p><strong>2. Virtuele foutloze posten berekenen</strong> Omdat de vereiste zekerheid door de risicoanalyse is gedaald van 95% naar ~80,2%, hoef je fysiek aanzienlijk minder posten te trekken. Het verschil in benodigd bewijs tussen een reguliere 95%-steekproef en deze 80%-steekproef wordt wiskundig opgevuld door virtuele foutloze posten. Bij een materialiteit van bijvoorbeeld 2% (0.02) bereken je dit als volgt:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Bereken het equivalente aantal foutloze posten</span></span>
+<span><span class="va">virtuele_posten</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/foutloze_posten_equivalent.html">foutloze_posten_equivalent</a></span><span class="op">(</span>ihr <span class="op">=</span> <span class="st">"L"</span>, ibr <span class="op">=</span> <span class="st">"M"</span>, car <span class="op">=</span> <span class="st">"H"</span>, materialiteit <span class="op">=</span> <span class="fl">0.02</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">virtuele_posten</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 78</span></span>
+<span><span class="co"># Output: Geeft het exacte aantal posten terug dat de effectieve interne controle </span></span>
+<span><span class="co"># "virtueel" voor je heeft afgevinkt.</span></span></code></pre></div>
+<p>Wanneer je de hoofdfunctie eval_stratified() gebruikt om je volledige audit met meerdere steekproeven door te rekenen, hoef je deze stappen niet zelf uit te voeren. Het package roept deze hulpfuncties op de achtergrond per geüploade steekproefregel automatisch aan. Zo wordt elke steekproef feilloos en transparant geharmoniseerd voordat de convolutie (het samenvoegen) plaatsvindt.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="live-version">Live version<a class="anchor" aria-label="anchor" href="#live-version"></a>
+<h2 id="webversie">Webversie<a class="anchor" aria-label="anchor" href="#webversie"></a>
 </h2>
-<p>On <a href="https://cfjdoedens.shinyapps.io/evalstratified/one" class="external-link uri">https://cfjdoedens.shinyapps.io/evalstratified/one</a> can find a live version of this package.</p>
+<p>Zie <a href="https://cfjdoedens.shinyapps.io/evalstratified/" class="external-link uri">https://cfjdoedens.shinyapps.io/evalstratified/</a>.</p>
 </div>
 <div class="section level2">
-<h2 id="ideas-for-further-development">Ideas for further development<a class="anchor" aria-label="anchor" href="#ideas-for-further-development"></a>
+<h2 id="ideeën-voor-verdere-ontwikkeling">Ideeën voor verdere ontwikkeling<a class="anchor" aria-label="anchor" href="#idee%C3%ABn-voor-verdere-ontwikkeling"></a>
 </h2>
 <ol style="list-style-type: decimal">
-<li>Add to live version the option to choose between</li>
+<li>Voeg aan de live-versie de mogelijkheid toe om te kiezen tussen:</li>
 </ol>
 <ul>
-<li>Dutch text + European number notation, or</li>
-<li>English text + European number notation, or</li>
-<li>English text + English number notation</li>
+<li>Nederlandse tekst + Europese getalnotatie, of</li>
+<li>Engelse tekst + Europese getalnotatie, of</li>
+<li>Engelse tekst + Engelse getalnotatie</li>
 </ul>
-<ol style="list-style-type: decimal">
-<li>Add informative texts to the various numbers that can be filled in, or are produced. This info appears by pressing little icons (“i” or so) near the subject matter.</li>
-</ol>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
