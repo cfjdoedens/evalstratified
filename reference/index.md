@@ -10,5 +10,7 @@
   risicoschattingen.
 - [`haro_nog_nodige_zekerheid()`](https://cfjdoedens.github.io/evalstratified/reference/haro_nog_nodige_zekerheid.md)
   : Bereken de nog benodigde zekerheid te verkrijgen uit detailcontrole
+- [`plot_kanskromme()`](https://cfjdoedens.github.io/evalstratified/reference/plot_kanskromme.md)
+  : Teken de kanskromme van de evaluatie
 - [`run_app()`](https://cfjdoedens.github.io/evalstratified/reference/run_app.md)
   : Launch the Shiny App

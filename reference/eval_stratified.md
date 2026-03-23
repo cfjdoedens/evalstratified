@@ -14,11 +14,17 @@ De meest waarschijnlijke fout is de modus van de kanskromme. De maximale
 fout is afhankelijk van de gevraagde zekerheid, en is de fout bij een
 cumulatieve kans gelijk aan deze zekerheid.
 
+De statistische interpretatie van de risico waarden hoog, midden en laag
+voor IHR, IBR en CAR, die deze module hanteert is volgens het HARO, het
+Handboek Auditing Rijksoverheid. Het HARo wordt beheerd door Auditdienst
+Rijk, de ADR.
+
 ## Usage
 
 ``` r
 eval_stratified(
   steekproeven,
+  model = "binomiaal",
   zekerheid = 0.95,
   MC = 1e+07,
   start = 1,
@@ -47,9 +53,11 @@ eval_stratified(
   hoogstratum (fout_hoog + goed_hoog). `waarde_populatie`, De totale
   boekwaarde van de hele populatie (waarde_laag + waarde_hoog).
 
-- zekerheid:
+- model:
 
-  Het zekerheidsniveau waarop we de maximale foutfractie berekenen.
+  Het statistische model dat gebruikt wordt voor de extrapolatie. Keuze
+  uit `"binomiaal"` (standaard) of `"poisson"`. \#' @param zekerheid Het
+  zekerheidsniveau waarop we de maximale foutfractie berekenen.
 
 - MC:
 
