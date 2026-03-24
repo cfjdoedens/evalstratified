@@ -56,8 +56,11 @@ eval_stratified(
 - model:
 
   Het statistische model dat gebruikt wordt voor de extrapolatie. Keuze
-  uit `"binomiaal"` (standaard) of `"poisson"`. \#' @param zekerheid Het
-  zekerheidsniveau waarop we de maximale foutfractie berekenen.
+  uit `"binomiaal"` (standaard) of `"poisson"`.
+
+- zekerheid:
+
+  Het zekerheidsniveau waarop we de maximale foutfractie berekenen.
 
 - MC:
 
