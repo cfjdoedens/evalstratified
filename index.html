@@ -184,6 +184,26 @@
 </div>
 </div>
 <div class="section level2">
+<h2 id="keuze-tussen-twee-statistische-modellen">Keuze tussen twee statistische modellen<a class="anchor" aria-label="anchor" href="#keuze-tussen-twee-statistische-modellen"></a>
+</h2>
+<p><code>Evalstratified</code> biedt de mogelijkheid om twee verschillende statistische modellen toe te passen. De keuze is tussen:</p>
+<ul>
+<li>binomiaal: Dit is het meest nauwkeurige model.</li>
+<li>Poisson: Dit wordt traditioneel veel gebruikt in de audit. Maar het is minder nauwkeurig, en bij grote foutfracties, wordt het erg onnauwkeurig.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="keuze-tussen-twee-berekeningswijzes">Keuze tussen twee berekeningswijzes<a class="anchor" aria-label="anchor" href="#keuze-tussen-twee-berekeningswijzes"></a>
+</h2>
+<p><code>Evalstratified</code> biedt de mogelijkheid om twee verschillende berekeningswijzen voor de convolutie, het met elkaar combineren, van de kanskrommes die de resultaten van de afzonderlijke steekproeven vertegenwoordigen.</p>
+<p>De keuze is tussen:</p>
+<ul>
+<li>Fast Fourier Transformatie (FFT): werkt door elk van de kanskrommen te verdelen in een eindig raster, en die rasters met elkaar te vermenigvuldigen.</li>
+<li>Monte Carlo: werkt door het willekeurig combineren van punten (tot op machineprecisie) uit de kanskrommen.</li>
+</ul>
+<p>Beide methoden berekenen een benadering van de resulterende kromme en de daarbij behorende meest waarschijnlijke fout, maximale fout, en andere kenmerkende waarden. Benadering: de opgegeven waarden kunnen mogelijk worden verbeterd binnen de nauwkeurigheid van de floating point module van de onderliggende computer. De nauwkeurigheid van beide methoden neemt toe bij grotere granulariteit. Dus bij grotere granulariteit wordt de benadering beter. Beide zijn grofweg even efficient. Beide zijn deterministisch, dit wel afhankelijk van granulariteit, machinenauwkeurigheid, en details van de onderliggende routines.</p>
+</div>
+<div class="section level2">
 <h2 id="webversie">Webversie<a class="anchor" aria-label="anchor" href="#webversie"></a>
 </h2>
 <p>Zie <a href="https://cfjdoedens.shinyapps.io/evalstratified/" class="external-link uri">https://cfjdoedens.shinyapps.io/evalstratified/</a>.</p>
